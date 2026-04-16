@@ -11,11 +11,10 @@
     "sourceMap": true,
     "forceConsistentCasingInFileNames": true,
 
-    "baseUrl": ".",
     "paths": {
-      "@mindfiredigital/mdslide-*": ["packages/*/src"]
+      "@mindfiredigital/mdslide-*": ["./packages/*/src"]
     },
 
-    "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "5.0"
   }
 }
