@@ -1,0 +1,21 @@
+{
+  "name": "@mindfiredigital/mdslide-parser",
+  "version": "0.0.1",
+  "private": false,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@mindfiredigital/mdslide-shared": "workspace:*",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.5"
+  }
+}
