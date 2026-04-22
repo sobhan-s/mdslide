@@ -118,20 +118,25 @@ body {
   max-height: 60vh;
   border-radius: var(--slide-radius);
 }
+[data-theme="light"] {
+  --slide-bg: #ffffff;
+  --slide-text: #1a1a1a;
+  --slide-accent: #2563eb;
+  --slide-muted: #6b7280;
+}  
 
-/* per-slide theme override — scoped via data-theme attribute (FR-06) */
 [data-theme="dark"] {
   --slide-bg: #0f0f0f;
   --slide-text: #e5e5e5;
   --slide-accent: #818cf8;
   --slide-muted: #9ca3af;
 }
-
-[data-theme="light"] {
-  --slide-bg: #ffffff;
-  --slide-text: #1a1a1a;
-  --slide-accent: #2563eb;
-  --slide-muted: #6b7280;
+  
+[data-theme="notion"] {
+  --slide-bg: #f7f6f3;
+  --slide-text: #37352f;
+  --slide-accent: #2eaadc;
+  --slide-muted: #9b9a97;
 }
 
 [data-theme="terminal"] {
@@ -141,12 +146,6 @@ body {
   --slide-muted: #005f1a;
 }
  
-[data-theme="notion"] {
-  --slide-bg: #f7f6f3;
-  --slide-text: #37352f;
-  --slide-accent: #2eaadc;
-  --slide-muted: #9b9a97;
-}
 
 [data-theme="gradient"] {
   --slide-bg: #1e1b4b;
@@ -162,10 +161,9 @@ body {
   font-family: var(--slide-mono);
   font-size: 0.8rem;
   color: var(--slide-muted);
-  z-index: 100;
+  z-index: 150;
 }
 
-/* speaker notes — hidden from audience, visible only in presenter mode */
 .notes { display: none; }
 `;
 }
