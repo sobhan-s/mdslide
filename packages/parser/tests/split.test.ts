@@ -57,6 +57,22 @@ describe('splitSlides', () => {
     expect(result[0].title).toBe('My Presentation');
   });
 
+  it('collects notes between :<!-- notes --> and <!-- /notes -->', () => {
+    const tree: Root = {
+      type: 'root',
+      children: [
+        { type: 'html', value: '<!-- notes -->' },
+        { type: 'paragraph', children: [{ type: 'text', value: 'speaker note' }] },
+        { type: 'html', value: '<!-- /notes -->' },
+        { type: 'paragraph', children: [{ type: 'text', value: 'visible' }] },
+      ],
+    };
+    const result = splitSlides(tree);
+    expect(result).toHaveLength(1);
+    expect(result[0].notes).toBe('speaker note');
+    expect(result[0].content[0].type).toBe('paragraph');
+  });
+
   it('every slide should have its own id', () => {
     const tree: Root = {
       type: 'root',

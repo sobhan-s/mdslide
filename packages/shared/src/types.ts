@@ -12,9 +12,10 @@ export interface Slide {
   title?: string;
   content: SlideNode[];
   notes?: string;
+  layoutOverride?: string;
 }
 
 export interface SlideDeck {
-  meta?: Record<string, unknown>;
+  meta: Record<string, unknown>;
   slides: Slide[];
 }

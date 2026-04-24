@@ -8,7 +8,7 @@ Parses a Markdown string into a structured array of `Slide` objects, ready to be
 
 The parser runs the input through three sequential steps:
 
-1. **Parse** — The raw Markdown string is parsed into an  AST using [`remark-parse`](https://github.com/remarkjs/remark/tree/main/packages/remark-parse).
+1. **Parse** — The raw Markdown string is parsed into an [mdast](https://github.com/syntax-tree/mdast) AST using [`remark-parse`](https://github.com/remarkjs/remark/tree/main/packages/remark-parse).
 2. **Split** — The AST is walked to split content into individual slides.
 3. **Detect Layout** — Each slide is inspected and assigned a layout type based on its content.
 

@@ -30,8 +30,31 @@ describe('detectLayout', () => {
       type: 'content',
       content: [{ type: 'text' }],
     };
-
     const result = detectLayout(slide);
     expect(result.type).toBe('content');
+  });
+
+  it('should follow layoutOverride even when content would auto-detect differently', () => {
+    const slide: Slide = {
+      id: '4',
+      type: 'content',
+      title: 'My Slide',
+      content: [{ type: 'list' }],
+      layoutOverride: 'content',
+    };
+    const result = detectLayout(slide);
+    expect(result.type).toBe('content');
+  });
+
+  it('should set type from layoutOverride on a title-only slide', () => {
+    const slide: Slide = {
+      id: '5',
+      type: 'content',
+      title: 'Override Me',
+      content: [],
+      layoutOverride: 'bullets',
+    };
+    const result = detectLayout(slide);
+    expect(result.type).toBe('bullets');
   });
 });

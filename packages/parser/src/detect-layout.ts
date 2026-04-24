@@ -1,6 +1,13 @@
-import { Slide } from '@mindfiredigital/mdslide-shared';
+import { Slide, SlideType } from '@mindfiredigital/mdslide-shared';
 
 export function detectLayout(slide: Slide): Slide {
+  //manual overide
+  if (slide.layoutOverride) {
+    return {
+      ...slide,
+      type: slide.layoutOverride as SlideType,
+    };
+  }
   //covert to bullet
   const hasList = slide.content.some((item) => item.type === 'list');
 
