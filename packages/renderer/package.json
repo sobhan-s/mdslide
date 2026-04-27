@@ -1,5 +1,5 @@
 {
-  "name": "@mindfiredigital/mdslide-parser",
+  "name": "@mindfiredigital/mdslide-renderer",
   "version": "0.0.1",
   "private": false,
   "type": "module",
@@ -15,12 +15,9 @@
   },
   "dependencies": {
     "@mindfiredigital/mdslide-shared": "workspace:*",
-    "remark-gfm": "^4.0.1",
-    "remark-parse": "^11.0.0",
-    "unified": "^11.0.5"
+    "@mindfiredigital/mdslide-parser": "workspace:*"
   },
   "devDependencies": {
-    "@types/mdast": "^4.0.4",
     "@types/node": "^25.6.0"
   }
 }
