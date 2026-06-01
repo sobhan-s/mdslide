@@ -1,19 +1,19 @@
 {
-  "name": "mdslide",
+  "name": "@mindfiredigital/mdslide",
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.29.3",
+  "packageManager": "bun@1.2.23",
   "scripts": {
-    "build": "pnpm -r build",
-    "dev": "pnpm -r dev",
+    "build": "bun run --filter \"*\" build",
+    "dev": "bun run --filter \"*\" dev",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{ts,js,json,css,md}\"",
     "prepare": "husky",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest --coverage"
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
@@ -25,7 +25,6 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.1",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.1",
     "vitest": "^4.1.0"
@@ -38,5 +37,9 @@
     "**/*.{json,css,md}": [
       "prettier --write"
     ]
-  }
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ]
 }
