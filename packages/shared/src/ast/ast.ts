@@ -1,4 +1,4 @@
-import { Slide } from './types.js';
+import { Slide } from '../types/types.js';
 
 export function createSlide(partial: Partial<Slide>): Slide {
   return {
