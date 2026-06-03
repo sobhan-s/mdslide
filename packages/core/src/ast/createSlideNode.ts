@@ -13,3 +13,15 @@ export function createSlideNode(partial: Partial<SlideNode> & { type: string }):
     header: partial.header,
   };
 }
+
+// Factor function to create slide's
+export function createSlide(partial: Partial<Slide>): Slide {
+  return {
+    id: partial.id ?? globalThis.crypto.randomUUID(),
+    type: partial.type ?? 'content',
+    content: partial.content ?? [],
+    notes: partial.notes,
+    title: partial.title,
+    layoutOverride: partial.layoutOverride,
+  };
+}
