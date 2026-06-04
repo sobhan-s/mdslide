@@ -1,6 +1,6 @@
 import { SlideNode } from '@mindfiredigital/mdslide-shared';
 
-export function countImages(nodes: SlideNode[]): number {
+function countImages(nodes: SlideNode[]): number {
   let count = 0;
   for (const node of nodes) {
     if (node.type === 'image') {
@@ -13,3 +13,5 @@ export function countImages(nodes: SlideNode[]): number {
 
   return count;
 }
+
+export { countImages };
