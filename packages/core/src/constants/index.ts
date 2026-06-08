@@ -20,3 +20,24 @@ export const SLIDE_CREATION_CONSTRAION = {
 
 export const MAX_CONTENT_HEIGHT =
   SLIDE_CREATION_CONSTRAION.MAX_SLIDE_HEIGHT - SLIDE_CREATION_CONSTRAION.BASE_SLIDE_PADDING;
+
+export const SUPPORTED_LANGS = [
+  'javascript',
+  'js',
+  'typescript',
+  'ts',
+  'html',
+  'css',
+  'json',
+  'rust',
+  'go',
+  'python',
+  'bash',
+  'sh',
+  'c',
+  'cpp',
+  'java',
+  'sql',
+  'yaml',
+  'yml',
+];
