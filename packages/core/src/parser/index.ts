@@ -1,2 +1,2 @@
 export * from './lexer.js';
-export * from './markdown_parser.js';
+export * from './markdownParser.js';
