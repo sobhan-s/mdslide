@@ -18,18 +18,25 @@ export const script = `
       if (isCurrent) {
         s.classList.add('active');
         s.classList.remove('past');
+      } else {
+        s.classList.remove('active');
+        if (i < index) {
+          s.classList.add('past');
+        } else {
+          s.classList.remove('past');
+        }
       }
 
       // Render time visual scaling calculation
-      const content = s.querySelector('.slide-content');
-      if (content) {
+      const content = s.querySelector('.slideContent');
+      if (content && isCurrent) {
         content.style.transform = 'none';
         content.style.width = '100%';
         content.style.transformOrigin = 'top left';
 
         const slideHeight = s.clientHeight;
         const contentHeight = content.scrollHeight;
-        const title = s.querySelector('.slide-title');
+        const title = s.querySelector('.slideTitle');
         const titleHeight = title ? title.clientHeight : 0;
         const availableHeight = slideHeight - titleHeight - 160;
 
@@ -39,13 +46,6 @@ export const script = `
             content.style.transform = 'scale(' + scale + ')';
             content.style.width = 100 / scale + '%';
           }
-        }
-      } else {
-        s.classList.remove('active');
-        if (i < index) {
-          s.classList.add('past');
-        } else {
-          s.classList.remove('past');
         }
       }
     });
@@ -84,7 +84,7 @@ export const script = `
       document.exitFullscreen();
     }
   }
-
+  
   // Navigation of keyBoard
   document.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowRight' || e.key === ' ') {
@@ -93,7 +93,7 @@ export const script = `
       prevSlide();
     } else if (e.key === 'f') {
       toggleFullscreen();
-    }
+    } 
   });
 
   // Floating DOK Display Vislibility on Mouse Move
@@ -108,7 +108,7 @@ export const script = `
     document.body.classList.add('showDok');
     clearTimeout(hudTimeout);
     hudTimeout = setTimeout(function () {
-      document.body.classList.remove('show-hud');
+      document.body.classList.remove('showDok');
     }, 2500);
   });
 

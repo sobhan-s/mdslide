@@ -207,7 +207,7 @@ body {
   width: 50%;
 }
 
-.splitColumn.text-column {
+.splitColumn.textColumn {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -279,7 +279,7 @@ body {
 }
 
 body.showDok .dokContainer,
-.dok-container:hover {
+.dokContainer:hover {
   transform: translateX(-50%) translateY(0);
   opacity: 1;
 }

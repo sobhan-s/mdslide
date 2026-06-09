@@ -4,31 +4,446 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MdSlide Feature Showcase</title>
+  <style id="mdslideBase">
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--slide-font);
+  background: var(--slide-bg);
+  color: var(--slide-text);
+  height: 100vh;
+  overflow: hidden;
+}
+
+.deck {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
+  height: 100vh;
+  padding: 3rem 5rem;
+  gap: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(40px);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease-out;
+}
+
+.slide.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+.slide.past {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-40px);
+}
+
+.slide[data-type="title"] {
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+}
+
+.slide[data-type="statement"] {
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+}
+
+.slide[data-type="visual"] {
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.slide[data-type="visual"] .slideContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+  width: 100%;
+}
+
+.slide[data-type="visual"] .slideContent p {
+  width: 100%;
+  height: 100%;
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  padding: 1rem;
+}
+
+.slide[data-type="visual"] img {
+  width: 100%;
+  height: 100%;
+  max-height: 95%;
+  max-width: 95%;
+  object-fit: contain;
+  box-shadow: var(--slide-shadow);
+  border-radius: var(--slide-radius);
+  margin: 0 auto;
+}
+
+
+
+.slideTitle {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--slide-text);
+  line-height: 1.2;
+}
+
+.slide[data-type="title"] .slideTitle {
+  font-size: 3rem;
+}
+
+.slideContent {
+  width: 100%;
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: var(--slide-text);
+}
+
+.slideContent p { margin-bottom: 0.75rem; }
+
+.slideContent ul,
+.slideContent ol {
+  padding-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.slideContent li { font-size: 1.1rem; }
+
+.slideContent pre {
+  background: rgba(0,0,0,0.05);
+  border-radius: var(--slide-radius);
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  font-family: var(--slide-mono);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.slideContent code {
+  font-family: var(--slide-mono);
+  font-size: 0.9em;
+  background: rgba(0,0,0,0.06);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
+.slideContent pre code {
+  background: none;
+  padding: 0;
+}
+
+.slideContent blockquote {
+  border-left: 4px solid var(--slide-accent);
+  padding-left: 1.25rem;
+  color: var(--slide-muted);
+  font-style: italic;
+}
+
+.slideContent table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1rem;
+}
+
+.slideContent td,
+.slideContent th {
+  border: 1px solid var(--slide-muted);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.slideContent img {
+  max-width: 100%;
+  max-height: 60vh;
+  border-radius: var(--slide-radius);
+}
+
+.slideContent li img {
+  display: block;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  max-height: 40vh;
+  box-shadow: var(--slide-shadow);
+}
+
+.splitLayout {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  flex-grow: 1;
+  gap: 3.5rem;
+  align-items: flex-start;
+  margin-top: 1rem;
+}
+
+.splitColumn {
+  flex: 1;
+  width: 50%;
+}
+
+.splitColumn.textColumn {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 1.5rem;
+  padding-top: 0.5rem; /* visual optical baseline alignment */
+}
+
+.splitColumn.rightColumn {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 1.5rem;
+  padding-top: 0.5rem;
+}
+
+.splitColumn.imageColumn {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.splitColumn.imageColumn img {
+  width: 100%;
+  height: auto;
+  max-height: 65vh;
+  object-fit: cover;
+  border-radius: var(--slide-radius);
+  box-shadow: var(--slide-shadow);
+}
+
+.notes { display: none; }
+
+/* Dynamic Floating dok & Progress Bar dok details */
+.progressBarContainer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: var(--progress-bg, rgba(0, 0, 0, 0.05));
+  z-index: 101;
+}
+
+.progressBar {
+  height: 100%;
+  width: 0%;
+  background: var(--slide-accent);
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dokContainer {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--dok-bg, rgba(255, 255, 255, 0.75));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--dok-border, rgba(255, 255, 255, 0.4));
+  border-radius: 30px;
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-out;
+}
+
+body.showDok .dokContainer,
+.dokContainer:hover {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.dokBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--slide-text);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.dokBtn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  opacity: 1;
+}
+
+.dokCounter {
+  font-family: var(--slide-mono);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0 0.5rem;
+  color: var(--slide-text);
+}
+
+@media print {
+  @page {
+    size: 1920px 1080px;
+    margin: 0;
+  }
+  body {
+    background: var(--slide-bg) !important;
+    color: var(--slide-text) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  .deck {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .slide {
+    position: relative !important;
+    display: flex !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    height: 1080px !important;
+    width: 1920px !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    border: none !important;
+    float: none !important;
+  }
+  .dokContainer,
+  .progressBarContainer {
+    display: none !important;
+  }
+}
+</style>
+  <style id="mdslideTheme">
+:root {
+  --slide-bg: #f8f7f4;
+  --slide-text: #1c1917;
+  --slide-accent: #2563eb;
+  --slide-muted: #78716c;
+  --slide-font: 'Georgia', 'Times New Roman', serif;
+  --slide-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  --slide-radius: 8px;
+  --slide-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  --dok-bg: rgba(255, 255, 255, 0.75);
+  --dok-border: rgba(255, 255, 255, 0.4);
+  --progress-bg: rgba(0, 0, 0, 0.05);
+}
+body {
+  background: radial-gradient(ellipse at top left, #eef2ff 0%, #f8f7f4 50%, #fdf4ef 100%);
+  background-attachment: fixed;
+}</style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" />
+  <style>
+    /* Custom Prism overrides to match slide styling perfectly */
+    pre[class*="language-"] {
+      margin: 0;
+      padding: 1.25rem 1.5rem !important;
+      background: rgba(0, 0, 0, 0.04) !important;
+      border-radius: var(--slide-radius);
+      border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    }
+    
+    [data-theme="dark"] pre[class*="language-"],
+    [data-theme="terminal"] pre[class*="language-"],
+    [data-theme="gradient"] pre[class*="language-"] {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    :not(pre) > code {
+      font-family: var(--slide-mono) !important;
+      font-size: 0.9em !important;
+      background: rgba(0, 0, 0, 0.06);
+      color: var(--slide-text) !important;
+      padding: 0.15em 0.35em;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    
+    [data-theme="dark"] :not(pre) > code,
+    [data-theme="terminal"] :not(pre) > code,
+    [data-theme="gradient"] :not(pre) > code {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--slide-text) !important;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    pre code[class*="language-"] {
+      font-family: var(--slide-mono) !important;
+      text-shadow: none !important;
+      font-size: 0.9rem !important;
+    }
+    
+    .line-numbers-rows {
+      border-right: 1px solid rgba(0,0,0,0.1) !important;
+      padding: 1.25rem 0 !important;
+    }
+    
+    [data-theme="dark"] .line-numbers-rows,
+    [data-theme="terminal"] .line-numbers-rows,
+    [data-theme="gradient"] .line-numbers-rows {
+      border-right: 1px solid rgba(255,255,255,0.15) !important;
+    }
+  </style>
 </head>
 <body>
   <div class="deck">
-<section class="slide" data-type="title" data-id="9726cffb-4908-4217-89f1-255c45c9378e">
+<section class="slide" data-type="title" data-id="aa37a5f1-f4ad-4faf-bb48-da0d9e3c7ff5">
   <h2 class="slideTitle">Welcome to MdSlide!</h2>
   <div class="slideContent">
     
   </div>
   
 </section>
-<section class="slide" data-type="content" data-id="6ec860ff-71af-4102-aac7-57bbb78486b7">
+<section class="slide" data-type="content" data-id="fa83c363-27d1-4d2d-8850-bd3f24542b1d">
   <h2 class="slideTitle">The Premium Markdown Presentation Compiler</h2>
   <div class="slideContent">
     <p>Sobhan Sahoo | May 2026</p>
   </div>
   
 </section>
-<section class="slide" data-type="quote" data-id="15222b9d-803c-47c8-aad5-0e1c7738da21">
+<section class="slide" data-type="quote" data-id="4b888ee5-b7d4-4863-ae4b-a6cb2759d97b">
   <h2 class="slideTitle">Focus on Content</h2>
   <div class="slideContent">
     <blockquote><p>&quot;MdSlide transforms simple Markdown into premium, responsive, high-fidelity slides automatically.&quot;</p></blockquote>
   </div>
   
 </section>
-<section class="slide" data-type="split" data-id="3c4d609d-f31a-4344-9e36-5bd741738309">
+<section class="slide" data-type="split" data-id="993ff9ce-9848-4312-9d51-d432ae405601">
   <h2 class="slideTitle">Premium Split Columns</h2>
   <div class="slideContent">
     
@@ -43,9 +458,9 @@
           </div>
         </div>
   </div>
-  
+  <aside class="notes" hidden>This is a speaker note for slide 1.This is a speaker note for slide 2.This is a speaker note for slide 3.This is a speaker note for slide 4.This is a speaker note for slide 5.This is a speaker note for slide 6.This is a speaker note for slide 7.This is a speaker note for slide 8.This is a speaker note for slide 9.</aside>
 </section>
-<section class="slide" data-type="split" data-id="c5e76c98-caf7-41d7-a98a-b7226524c839">
+<section class="slide" data-type="split" data-id="e2fbcc74-10fb-402c-809e-cd43762f491b">
   <h2 class="slideTitle">Custom Split Columns</h2>
   <div class="slideContent">
     
@@ -56,14 +471,14 @@
         <div class="splitColumn rightColumn">
           <pre class="lineNumbers language-typescript"><code class="language-typescript">// Custom Split Code on the right!
 const compiler = new MdSlideCompiler();
-const deck = compiler.compile(&quot;presentation.md&quot;);
-console.log(&quot;Deck compiled successfully!&quot;);</code></pre>
+const deck = compiler.compile('presentation.md');
+console.log('Deck compiled successfully!');</code></pre>
         </div>
       </div>
   </div>
   
 </section>
-<section class="slide" data-type="split" data-id="5687ce54-7843-4275-8b69-08147590b223">
+<section class="slide" data-type="split" data-id="5c9fd706-5fa2-4cdd-aecc-2a0e5224213f">
   <h2 class="slideTitle">Beautiful Code Highlighting</h2>
   <div class="slideContent">
     
@@ -88,7 +503,7 @@ class TextIgniter {
   }
 
   private initialize(): void {
-    console.log(&quot;Initializing rich-text editor...&quot;);
+    console.log('Initializing rich-text editor...');
   }
 }</code></pre>
         </div>
@@ -96,7 +511,7 @@ class TextIgniter {
   </div>
   
 </section>
-<section class="slide" data-type="bullets" data-id="f02bf8de-7e28-4949-add0-2449064de76c">
+<section class="slide" data-type="bullets" data-id="7f93a886-5557-41b0-8069-9be54040b0da">
   <h2 class="slideTitle">Rich Markdown Features</h2>
   <div class="slideContent">
     Inline Elements &amp; formatting
@@ -105,7 +520,7 @@ class TextIgniter {
   </div>
   
 </section>
-<section class="slide" data-type="table" data-id="0779d5fc-6ae3-4e67-ad47-69a457a2f497">
+<section class="slide" data-type="table" data-id="1d30930d-4d2d-4aa0-9288-e1bbf539cdaf">
   <h2 class="slideTitle">Comparison Grid</h2>
   <div class="slideContent">
     Clean Feature Matrix
@@ -113,7 +528,7 @@ class TextIgniter {
   </div>
   
 </section>
-<section class="slide" data-type="bullets" data-id="773ef776-d8d4-442f-8462-c4b06288a603">
+<section class="slide" data-type="bullets" data-id="0b0e2e24-1ad9-416a-b6e8-530eb3c92699">
   <h2 class="slideTitle">Overflow Engine Test</h2>
   <div class="slideContent">
     Verifying Heuristic Splitting
@@ -122,7 +537,7 @@ class TextIgniter {
   </div>
   
 </section>
-<section class="slide" data-type="bullets" data-id="aa04774e-829c-49a1-b4ba-b8245ffcf0ec">
+<section class="slide" data-type="bullets" data-id="f8c8e812-a6cb-4963-8179-5c0638af6d59">
   <h2 class="slideTitle">Stacking Multiple Images</h2>
   <div class="slideContent">
     Visual Stacking Layout (2 Images)
@@ -130,7 +545,7 @@ class TextIgniter {
   </div>
   
 </section>
-<section class="slide" data-type="bullets" data-id="aa04774e-829c-49a1-b4ba-b8245ffcf0ec-cont-p1">
+<section class="slide" data-type="bullets" data-id="f8c8e812-a6cb-4963-8179-5c0638af6d59-cont-p1">
   <h2 class="slideTitle">Stacking Multiple Images (Cont.)</h2>
   <div class="slideContent">
     <ul><li><p><strong>Image 1 (Tech Setup):</strong>
@@ -139,7 +554,7 @@ class TextIgniter {
   </div>
   
 </section>
-<section class="slide" data-type="split" data-id="6beaf027-294b-4797-9714-42af848db70a">
+<section class="slide" data-type="split" data-id="a6b7719d-7ce4-4280-bc4a-74662a7ac234">
   <h2 class="slideTitle">Deeply Nested Images</h2>
   <div class="slideContent">
     
@@ -156,7 +571,7 @@ class TextIgniter {
   </div>
   
 </section>
-<section class="slide" data-type="bullets" data-id="aa4cf749-a8b9-4ed0-985b-2faf2bbcac6e">
+<section class="slide" data-type="bullets" data-id="5ee6fa1b-2836-4c4b-bd98-3d27b747e7a1">
   <h2 class="slideTitle">Image Overflow Stress Test</h2>
   <div class="slideContent">
     Dense content with multiple heavy nodes
@@ -164,7 +579,7 @@ class TextIgniter {
   </div>
   
 </section>
-<section class="slide" data-type="bullets" data-id="aa4cf749-a8b9-4ed0-985b-2faf2bbcac6e-cont-p1">
+<section class="slide" data-type="bullets" data-id="5ee6fa1b-2836-4c4b-bd98-3d27b747e7a1-cont-p1">
   <h2 class="slideTitle">Image Overflow Stress Test (Cont.)</h2>
   <div class="slideContent">
     <ul><li><p><strong>First Phase:</strong> Designing user interface frames and setting style tokens.</p></li><li><p><strong>Second Phase:</strong> Building interactive web component wrappers.</p></li><li><p><strong>Image 1 (Team Board):</strong>
@@ -173,7 +588,7 @@ class TextIgniter {
   </div>
   
 </section>
-<section class="slide" data-type="content" data-id="e7914f3e-a5c9-47c7-bc59-a51fe2fd5ae5">
+<section class="slide" data-type="content" data-id="95bfa790-bc2e-40fb-afdf-883045b42670">
   <h2 class="slideTitle">Ultimate Code Splitter Blast Test</h2>
   <div class="slideContent">
     Extremely long program segment (70 lines of code)
@@ -187,13 +602,13 @@ class TextIgniter {
   }
 
   public tokenize(): string[] {
-    console.log(&quot;Tokenizing raw string input...&quot;);
-    let buffer = &quot;&quot;;
+    console.log('Tokenizing raw string input...');
+    let buffer = '';
     for (let char of this.rawInput) {
-      if (char === &quot; &quot; || char === &quot;\n&quot;) {
+      if (char === ' ' || char === '\n') {
         if (buffer.length &gt; 0) {
           this.tokens.push(buffer);
-          buffer = &quot;&quot;;
+          buffer = '';
         }
       } else {
         buffer += char;
@@ -206,27 +621,27 @@ class TextIgniter {
   }
 
   public parseAST(): Record&lt;string, any&gt; {
-    const ast: Record&lt;string, any&gt; = { type: &quot;Root&quot;, children: [] };
+    const ast: Record&lt;string, any&gt; = { type: 'Root', children: [] };
     for (let token of this.tokens) {
-      if (token.startsWith(&quot;#&quot;)) {
-        ast.children.push({ type: &quot;Header&quot;, value: token.slice(1) });</code></pre>
+      if (token.startsWith('#')) {
+        ast.children.push({ type: 'Header', value: token.slice(1) });</code></pre>
   </div>
   
 </section>
-<section class="slide" data-type="content" data-id="e7914f3e-a5c9-47c7-bc59-a51fe2fd5ae5-cont-p1">
+<section class="slide" data-type="content" data-id="95bfa790-bc2e-40fb-afdf-883045b42670-cont-p1">
   <h2 class="slideTitle">Ultimate Code Splitter Blast Test (Cont.)</h2>
   <div class="slideContent">
-    <pre class="lineNumbers language-typescript"><code class="language-typescript">      } else if (token.startsWith(&quot;-&quot;)) {
-        ast.children.push({ type: &quot;ListItem&quot;, value: token.slice(1) });
+    <pre class="lineNumbers language-typescript"><code class="language-typescript">      } else if (token.startsWith('-')) {
+        ast.children.push({ type: 'ListItem', value: token.slice(1) });
       } else {
-        ast.children.push({ type: &quot;Word&quot;, value: token });
+        ast.children.push({ type: 'Word', value: token });
       }
     }
     return ast;
   }
 
   public printSummary(): void {
-    console.log(&quot;=== Parsing Summary ===&quot;);
+    console.log('=== Parsing Summary ===');
     console.log(`Raw Input Length: ${this.rawInput.length}`);
     console.log(`Total Tokens Scanned: ${this.tokens.length}`);
     console.log(`AST Node Count: ${this.parseAST().children.length}`);
@@ -234,14 +649,14 @@ class TextIgniter {
 
   public reset(): void {
     this.tokens = [];
-    this.rawInput = &quot;&quot;;
-    console.log(&quot;Parser state cleared successfully.&quot;);
+    this.rawInput = '';
+    console.log('Parser state cleared successfully.');
   }
 }</code></pre>
   </div>
   
 </section>
-<section class="slide" data-type="table" data-id="0fa34a3c-7e35-4a9d-af33-df40a830d233">
+<section class="slide" data-type="table" data-id="5ce57020-a98f-48c3-abf8-83484222d170">
   <h2 class="slideTitle">Complex Matrix Table Blast Test</h2>
   <div class="slideContent">
     Highly detailed feature comparison board
@@ -250,7 +665,7 @@ class TextIgniter {
   </div>
   
 </section>
-<section class="slide" data-type="bullets" data-id="bea9a3a8-7b2c-4303-a2aa-5aa6f1e474d6">
+<section class="slide" data-type="bullets" data-id="84182b6e-a32d-4e06-ab59-56c2fe3b6566">
   <h2 class="slideTitle">Extremely Nested Lists Blast Test</h2>
   <div class="slideContent">
     Nested list indentation stress test
@@ -258,14 +673,14 @@ class TextIgniter {
   </div>
   
 </section>
-<section class="slide" data-type="bullets" data-id="bea9a3a8-7b2c-4303-a2aa-5aa6f1e474d6-cont-p1">
+<section class="slide" data-type="bullets" data-id="84182b6e-a32d-4e06-ab59-56c2fe3b6566-cont-p1">
   <h2 class="slideTitle">Extremely Nested Lists Blast Test (Cont.)</h2>
   <div class="slideContent">
     <ul><li><p><strong>Core Level 1 Item</strong></p><ul><li><p>Sub-Level 2 Item (with nested elements)</p><ul><li><p>Sub-Level 3 Item (with inline tags: <code>const nested = true</code>)</p><ul><li><p><strong>Sub-Level 4 Item (Giga Deep!):</strong> This is nested four levels deep, demonstrating how theme left-padding styles behave!</p></li><li><p>Another Sub-Level 4 bullet item to verify stack breathing room.</p></li></ul></li><li><p>Back to Level 3 Bullet point.</p></li></ul></li><li><p>Level 2 secondary bullet point.</p></li></ul></li><li><p><strong>Core Level 1 Secondary Item</strong></p><ul><li><p>Secondary Sub-Level 2 item.</p></li></ul></li></ul>
   </div>
   
 </section>
-<section class="slide" data-type="split" data-id="f943e2c9-016a-48b3-882f-f6c152943b2e">
+<section class="slide" data-type="split" data-id="4cba87ab-458d-4472-91f0-c58ddaf6a601">
   <h2 class="slideTitle">Giant Split Layout Overflow Blast Test</h2>
   <div class="slideContent">
     Overflowing a side-by-side split layout
@@ -274,7 +689,7 @@ class TextIgniter {
   </div>
   
 </section>
-<section class="slide" data-type="split" data-id="f943e2c9-016a-48b3-882f-f6c152943b2e-cont-p1">
+<section class="slide" data-type="split" data-id="4cba87ab-458d-4472-91f0-c58ddaf6a601-cont-p1">
   <h2 class="slideTitle">Giant Split Layout Overflow Blast Test (Cont.)</h2>
   <div class="slideContent">
     
@@ -292,25 +707,29 @@ class TextIgniter {
 </section>
   </div>
 
-  <!-- Dynamic Sleek Baseline Progress Bar -->
-  <div class="progress-bar-container">
-    <div id="progress-bar" class="progress-bar"></div>
+  <!-- Progress Bar -->
+  <div class="progressBarContainer">
+    <div id="progressBar" class="progressBar"></div>
   </div>
 
-  <!-- Sleek Hover-Activated Glassmorphism HUD Control Bar -->
-  <div class="hud-container">
-    <button id="hud-prev" class="hud-btn" title="Previous Slide">
+  <!-- DOK Control bar -->
+  <div class="dokContainer">
+    <button id="dokPrev" class="dokBtn" title="Previous Slide">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
     </button>
-    <span id="hud-counter" class="hud-counter">1 / 1</span>
-    <button id="hud-next" class="hud-btn" title="Next Slide">
+    <span id="dokCounter" class="dokCounter">1 / 1</span>
+    <button id="dokNext" class="dokBtn" title="Next Slide">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
     </button>
-    <button id="hud-fullscreen" class="hud-btn" title="Toggle Fullscreen (F)">
+    
+    <button id="dokFullscreen" class="dokBtn" title="Toggle Fullscreen (F)">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
     </button>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
   
 
 <script>
@@ -331,18 +750,25 @@ class TextIgniter {
       if (isCurrent) {
         s.classList.add('active');
         s.classList.remove('past');
+      } else {
+        s.classList.remove('active');
+        if (i < index) {
+          s.classList.add('past');
+        } else {
+          s.classList.remove('past');
+        }
       }
 
       // Render time visual scaling calculation
-      const content = s.querySelector('.slide-content');
-      if (content) {
+      const content = s.querySelector('.slideContent');
+      if (content && isCurrent) {
         content.style.transform = 'none';
         content.style.width = '100%';
         content.style.transformOrigin = 'top left';
 
         const slideHeight = s.clientHeight;
         const contentHeight = content.scrollHeight;
-        const title = s.querySelector('.slide-title');
+        const title = s.querySelector('.slideTitle');
         const titleHeight = title ? title.clientHeight : 0;
         const availableHeight = slideHeight - titleHeight - 160;
 
@@ -352,13 +778,6 @@ class TextIgniter {
             content.style.transform = 'scale(' + scale + ')';
             content.style.width = 100 / scale + '%';
           }
-        }
-      } else {
-        s.classList.remove('active');
-        if (i < index) {
-          s.classList.add('past');
-        } else {
-          s.classList.remove('past');
         }
       }
     });
@@ -398,6 +817,7 @@ class TextIgniter {
     }
   }
 
+  
   // Navigation of keyBoard
   document.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowRight' || e.key === ' ') {
@@ -406,7 +826,7 @@ class TextIgniter {
       prevSlide();
     } else if (e.key === 'f') {
       toggleFullscreen();
-    }
+    } 
   });
 
   // Floating DOK Display Vislibility on Mouse Move
@@ -421,7 +841,7 @@ class TextIgniter {
     document.body.classList.add('showDok');
     clearTimeout(hudTimeout);
     hudTimeout = setTimeout(function () {
-      document.body.classList.remove('show-hud');
+      document.body.classList.remove('showDok');
     }, 2500);
   });
 
