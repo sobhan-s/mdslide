@@ -24,7 +24,12 @@ export default defineConfig([
       globals: { ...globals.node },
       parserOptions: {
         projectService: {
-          allowDefaultProject: ['vitest.config.ts', 'packages/*/tests/*.test.ts'],
+          allowDefaultProject: [
+            'vitest.config.ts',
+            'packages/*/tests/*.test.ts',
+            'tsup.config.base.ts',
+            'packages/*/tsup.config.ts',
+          ],
         },
         tsconfigRootDir: import.meta.dirname,
       },
@@ -45,6 +50,10 @@ export default defineConfig([
     files: ['**/*.{js,mjs}'],
     languageOptions: {
       globals: { ...globals.node },
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
   },
 ]);
