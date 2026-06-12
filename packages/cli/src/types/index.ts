@@ -62,3 +62,17 @@ export interface ValidationIssue {
   message: string;
   hint?: string;
 }
+
+export interface MdSlideConfig {
+  theme?: string;
+  output?: string;
+  format?: string;
+  watch?: {
+    port?: number;
+    open?: boolean;
+  };
+  pdf?: {
+    chromePath?: string;
+    printBackground?: boolean;
+  };
+}
