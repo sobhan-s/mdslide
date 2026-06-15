@@ -20,7 +20,7 @@ export const COMPILE_MESSAGES = {
     const summaryText =
       warningCount > 0
         ? `(${warningCount} warning${warningCount > 1 ? 's' : ''})`
-        : `— ${slideCount} slide${slideCount !== 1 ? 's' : ''}`;
+        : `  ${slideCount} slide${slideCount !== 1 ? 's' : ''}`;
     return `${relativePath}  ${summaryText}`;
   },
 } as const;
