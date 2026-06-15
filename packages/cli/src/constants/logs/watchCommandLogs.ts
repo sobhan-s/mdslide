@@ -9,11 +9,11 @@ export const WATCH_CONFIG = {
 export const WATCH_MESSAGES = {
   SPINNER_START: (filename: string) => `Compiling ${filename}`,
   SPINNER_READY: 'Ready',
-  SPINNER_FAIL: 'Compilation failed — showing error overlay',
+  SPINNER_FAIL: 'Compilation failed   showing error overlay',
   SERVER_STOPPED: 'Server stopped.',
-  CHANGE_DETECTED: 'Change detected — recompiling...',
+  CHANGE_DETECTED: 'Change detected   recompiling...',
   RECOMPILE_SUCCESS: (slideCount: number) =>
-    `Recompiled — ${slideCount} slide${slideCount !== 1 ? 's' : ''}`,
+    `Recompiled   ${slideCount} slide${slideCount !== 1 ? 's' : ''}`,
   WATCHING_FILE: (relativePath: string) => `Watching ${relativePath}`,
 } as const;
 
