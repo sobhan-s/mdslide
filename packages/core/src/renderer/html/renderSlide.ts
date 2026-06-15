@@ -1,16 +1,85 @@
 import type { Slide, SlideNode } from '@mindfiredigital/mdslide-shared';
 import { renderCodeBlock, renderInlineCode } from './renderCode.js';
 import { renderTable, renderTableRow, renderTableCell } from './renderTable.js';
-import { sanitizeHtml } from '../../utils/index.js';
+import { sanitizeHtml, sanitizeUrl } from '../../utils/index.js';
 
+// Extract all image node from tree and return them separately
+function extractImages(nodes: SlideNode[]): {
+  clean: SlideNode[];
+  images: SlideNode[];
+} {
+  const images: SlideNode[] = [];
+
+  function stripImages(node: SlideNode): SlideNode | null {
+    if (node.type === 'image') {
+      images.push(node);
+      return null;
+    }
+    // paragraph that contains only images
+    if (
+      node.type === 'paragraph' &&
+      node.children &&
+      node.children.every(
+        (c) => c.type === 'image' || (c.type === 'text' && c.value?.trim() === '')
+      )
+    ) {
+      node.children.forEach((c) => {
+        if (c.type === 'image') images.push(c);
+      });
+      return null;
+    }
+    if (node.children && node.children.length > 0) {
+      const cleanChildren = node.children
+        .map(stripImages)
+        .filter((c): c is SlideNode => c !== null);
+      return { ...node, children: cleanChildren };
+    }
+    return node;
+  }
+
+  const clean = nodes.map(stripImages).filter((n): n is SlideNode => n !== null);
+
+  return { clean, images };
+}
+
+// checker for if any image is there inside of list items.
+function listItemHasImage(node: SlideNode): boolean {
+  if (node.type === 'image') return true;
+  if (node.children) return node.children.some(listItemHasImage);
+  return false;
+}
+
+// Render a listItem's text content only
+function renderListItemText(node: SlideNode): string {
+  if (node.type === 'image') return '';
+  if (node.type === 'text') return sanitizeHtml(node.value ?? '');
+  if (node.children) {
+    return node.children.map(renderListItemText).join('');
+  }
+  return '';
+}
+
+// node to html
 export function childrenToHtml(node: SlideNode): string {
   return (node.children ?? []).map(nodeToHtml).join('');
 }
 
 export function nodeToHtml(node: SlideNode): string {
   switch (node.type) {
-    case 'paragraph':
+    case 'paragraph': {
+      // Paragraph that is purely image(s)   render as figure, not <p>
+      const onlyImages =
+        node.children &&
+        node.children.length > 0 &&
+        node.children.every((c) => c.type === 'image' || (c.type === 'text' && !c.value?.trim()));
+      if (onlyImages) {
+        return (node.children ?? [])
+          .filter((c) => c.type === 'image')
+          .map((img) => nodeToHtml(img))
+          .join('');
+      }
       return `<p>${childrenToHtml(node)}</p>`;
+    }
 
     case 'text':
       return sanitizeHtml(node.value ?? '');
@@ -28,8 +97,38 @@ export function nodeToHtml(node: SlideNode): string {
       return renderCodeBlock(node);
 
     case 'list': {
+      // Extract images that ended up inside list items
       const tag = node.ordered ? 'ol' : 'ul';
-      return `<${tag}>${childrenToHtml(node)}</${tag}>`;
+
+      // Check if any list item carries an image
+      const hasNestedImages = (node.children ?? []).some(listItemHasImage);
+
+      if (!hasNestedImages) {
+        return `<${tag}>${childrenToHtml(node)}</${tag}>`;
+      }
+
+      // Render list items text-only, collect images
+      const collectedImages: SlideNode[] = [];
+      const itemsHtml = (node.children ?? [])
+        .map((item) => {
+          if (!listItemHasImage(item)) {
+            return `<li>${childrenToHtml(item)}</li>`;
+          }
+          // Extract images from this item
+          const { clean, images } = extractImages(item.children ?? []);
+          collectedImages.push(...images);
+          const textContent = clean.map(nodeToHtml).join('');
+          return `<li>${textContent}</li>`;
+        })
+        .join('');
+
+      // Render collected images in a grid below the list
+      const imagesHtml =
+        collectedImages.length > 0
+          ? `<div class="inlineImageGrid">${collectedImages.map(nodeToHtml).join('')}</div>`
+          : '';
+
+      return `<${tag}>${itemsHtml}</${tag}>${imagesHtml}`;
     }
 
     case 'listItem':
@@ -41,12 +140,12 @@ export function nodeToHtml(node: SlideNode): string {
     case 'image': {
       const src = node.url ?? node.value ?? '';
       const alt = node.alt ?? '';
-      return `<img src="${sanitizeHtml(src)}" alt="${sanitizeHtml(alt)}" />`;
+      return `<img src="${sanitizeUrl(src, true)}" alt="${sanitizeHtml(alt)}" loading="lazy" />`;
     }
 
     case 'link': {
       const href = node.url ?? node.value ?? '';
-      return `<a href="${sanitizeHtml(href)}">${childrenToHtml(node)}</a>`;
+      return `<a href="${sanitizeUrl(href, false)}">${childrenToHtml(node)}</a>`;
     }
 
     case 'table':
@@ -62,32 +161,29 @@ export function nodeToHtml(node: SlideNode): string {
       return '<br />';
 
     case 'html':
+      // Strip HTML comments and raw HTML nodes
       return '';
 
     case 'column':
       return childrenToHtml(node);
 
     default:
-      if (node.value) {
-        return sanitizeHtml(node.value);
-      }
-      if (node.children?.length) {
-        return childrenToHtml(node);
-      }
+      if (node.value) return sanitizeHtml(node.value);
+      if (node.children?.length) return childrenToHtml(node);
       return '';
   }
 }
 
+//  Notes
 export function renderNotes(notes: string | undefined): string {
   if (!notes) return '';
   return `<aside class="notes" hidden>${sanitizeHtml(notes)}</aside>`;
 }
 
+// Image helpers for split layout
 function findImageNode(nodes: SlideNode[]): SlideNode | null {
   for (const node of nodes) {
-    if (node.type === 'image') {
-      return node;
-    }
+    if (node.type === 'image') return node;
     if (node.children) {
       const img = findImageNode(node.children);
       if (img) return img;
@@ -99,18 +195,24 @@ function findImageNode(nodes: SlideNode[]): SlideNode | null {
 function removeImageNode(nodes: SlideNode[]): SlideNode[] {
   return nodes
     .map((node) => {
-      if (node.type === 'image') {
-        return null;
-      }
-      if (node.children) {
-        return {
-          ...node,
-          children: removeImageNode(node.children),
-        };
-      }
+      if (node.type === 'image') return null;
+      if (node.children) return { ...node, children: removeImageNode(node.children) };
       return node;
     })
     .filter((n): n is SlideNode => n !== null);
+}
+
+// Slide renderer
+
+// Count total images anywhere in a node tree
+function countImagesInTree(nodes: SlideNode[]): number {
+  let count = 0;
+  function walk(node: SlideNode) {
+    if (node.type === 'image') count++;
+    if (node.children) node.children.forEach(walk);
+  }
+  nodes.forEach(walk);
+  return count;
 }
 
 export function renderSlide(slide: Slide): string {
@@ -118,41 +220,33 @@ export function renderSlide(slide: Slide): string {
   const notesHtml = renderNotes(slide.notes);
 
   let contentHtml = '';
+
   if (slide.type === 'split') {
     const isManualSplit =
       slide.content.length === 2 &&
-      slide.content[0].type === 'column' &&
-      slide.content[1].type === 'column';
+      slide.content[0]!.type === 'column' &&
+      slide.content[1]!.type === 'column';
+
     if (isManualSplit) {
-      const leftHtml = nodeToHtml(slide.content[0]);
-      const rightHtml = nodeToHtml(slide.content[1]);
-
+      // Manual ::split::
       contentHtml = `
-      <div class="splitLayout">
-        <div class="splitColumn textColumn">
-          ${leftHtml}
-        </div>
-        <div class="splitColumn rightColumn">
-          ${rightHtml}
-        </div>
-      </div>`;
-    } else {
-      const imageNode = findImageNode(slide.content);
-      if (imageNode) {
-        const textNodes = removeImageNode(slide.content);
-        const textHtml = textNodes.map(nodeToHtml).join('\n');
-        const imageHtml = nodeToHtml(imageNode);
-
-        contentHtml = `
         <div class="splitLayout">
-          <div class="splitColumn textColumn">
-            ${textHtml}
-          </div>
-          <div class="splitColumn imageColumn">
-            ${imageHtml}
-          </div>
+          <div class="splitColumn textColumn">${nodeToHtml(slide.content[0]!)}</div>
+          <div class="splitColumn rightColumn">${nodeToHtml(slide.content[1]!)}</div>
         </div>`;
+    } else {
+      // Auto-split: only do text+image split when there is EXACTLY one image
+      const totalImages = countImagesInTree(slide.content);
+      if (totalImages === 1) {
+        const imageNode = findImageNode(slide.content);
+        const textNodes = removeImageNode(slide.content);
+        contentHtml = `
+          <div class="splitLayout">
+            <div class="splitColumn textColumn">${textNodes.map(nodeToHtml).join('\n')}</div>
+            <div class="splitColumn imageColumn">${nodeToHtml(imageNode!)}</div>
+          </div>`;
       } else {
+        // 0 or 2+ images   render normally, let the list handler show images in a grid
         contentHtml = slide.content.map(nodeToHtml).join('\n');
       }
     }
