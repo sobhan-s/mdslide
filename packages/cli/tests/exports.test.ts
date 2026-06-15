@@ -5,8 +5,6 @@ import path from 'path';
 import http from 'http';
 import { spawn, execFileSync } from 'child_process';
 import { EventEmitter } from 'events';
-
-// Import exporter functions
 import { findChromeBinary, exportToPdf, compileToPdf } from '../src/exports/pdfExports.ts';
 import { compileToScreenshotPptx } from '../src/exports/pptxScreenshotExporter.ts';
 import { compileToEditablePptx } from '../src/exports/pptxEditableExporter.ts';
