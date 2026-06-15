@@ -11,7 +11,6 @@ describe('CLI Validate Command', () => {
   const invalidMd = path.join(tmpDir, 'invalid.md');
   const warningMd = path.join(tmpDir, 'warning.md');
 
-  // New validation rules test files
   const frontmatterErrorMd = path.join(tmpDir, 'frontmatter-error.md');
   const frontmatterWarningMd = path.join(tmpDir, 'frontmatter-warning.md');
   const frontmatterNonStringThemeMd = path.join(tmpDir, 'frontmatter-non-string-theme.md');
@@ -41,8 +40,6 @@ describe('CLI Validate Command', () => {
     fs.writeFileSync(validMd, '# Page One\nContent 1\n---\n# Page Two\nContent 2\n');
     fs.writeFileSync(invalidMd, '# Unclosed Fence\n```javascript\nconst a = 1;\n');
     fs.writeFileSync(warningMd, 'No Heading Here\n');
-
-    // Write contents for new rules
     fs.writeFileSync(frontmatterErrorMd, '---\ntheme: [unclosed-array\n---\n# Page One\n');
     fs.writeFileSync(frontmatterWarningMd, '---\ntheme: nonexistent-theme\n---\n# Page One\n');
     fs.writeFileSync(frontmatterNonStringThemeMd, '---\ntheme: 123\n---\n# Page One\n');
