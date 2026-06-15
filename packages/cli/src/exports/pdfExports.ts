@@ -5,10 +5,10 @@ import { execFileSync } from 'child_process';
 import { PdfExportOptions } from '../types/index.js';
 import { PDF_CONFIG, PDF_MESSAGES } from '../constants/index.js';
 
-function findChromeBinary(): string | null {
+export function findChromeBinary(): string | null {
   for (const bin of PDF_CONFIG.CHROME_CANDIDATES) {
     try {
-      execFileSync(`"${bin}" --version > /dev/null 2>&1`);
+      execFileSync(bin, ['--version'], { stdio: 'ignore' });
       return bin;
     } catch {}
   }
