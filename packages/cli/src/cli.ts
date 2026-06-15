@@ -32,28 +32,56 @@ try {
 const cli = cac('mdslide');
 
 cli.version(version);
+cli.usage('<input> [options]');
 cli.help();
+
+cli.example('  mdslide slides.md                     # Interactive mode (runs wizard)');
+cli.example('  mdslide slides.md -i                  # Explicit interactive mode');
+cli.example('  mdslide slides.md -t dark --open      # Manual flags mode (bypasses wizard)');
 
 cli
   .command('compile <input>', 'Compile a Markdown presentation to HTML, PDF, or PPTX')
   .option('-t, --theme <theme>', 'Theme: light | dark | notion | terminal | gradient')
   .option('-o, --output <file>', 'Output file path  (default: output.<format>)')
   .option('-f, --format <format>', 'Format: html | pdf | pptx  (auto-detected from -o extension)')
+  .option('-i, --interactive', 'Run compile interactively')
   .option('--open', 'Open the output file after compile')
   .option('--strict', 'Exit with error on warnings')
   .option('--verbose', 'Verbose log output')
   .option('--silent', 'Suppress all output')
   .example('  mdslide compile slides.md')
+  .example('  mdslide compile slides.md -i')
   .example('  mdslide compile slides.md -t dark -o dist/deck.html')
   .example('  mdslide compile slides.md -f pptx -o deck.pptx')
   .action(async (input: string, opts: any) => {
+    const logLevel = opts.verbose ? 'verbose' : opts.silent ? 'silent' : 'info';
+    if (opts.interactive) {
+      const answers = await runInteractivePrompt(input);
+      if (answers.watch) {
+        await watchCommand(input, {
+          theme: answers.theme,
+          open: answers.open,
+          logLevel,
+        });
+      } else {
+        await compileCommand(input, {
+          theme: answers.theme,
+          output: answers.output,
+          format: answers.format as any,
+          open: answers.open,
+          logLevel,
+        });
+      }
+      return;
+    }
+
     await compileCommand(input, {
       theme: opts.theme,
       output: opts.output,
       format: opts.format,
       open: opts.open ?? false,
       strict: opts.strict ?? false,
-      logLevel: opts.verbose ? 'verbose' : opts.silent ? 'silent' : 'info',
+      logLevel,
     });
   });
 
@@ -105,23 +133,54 @@ cli
     });
   });
 
+// interactive
+cli
+  .command('interactive <input>', 'Compile a presentation using the interactive wizard')
+  .option('--verbose', 'Verbose log output')
+  .option('--silent', 'Suppress all output')
+  .example('  mdslide interactive slides.md')
+  .action(async (input: string, opts: any) => {
+    const logLevel = opts.verbose ? 'verbose' : opts.silent ? 'silent' : 'info';
+    const answers = await runInteractivePrompt(input);
+
+    if (answers.watch) {
+      await watchCommand(input, {
+        theme: answers.theme,
+        open: answers.open,
+        logLevel,
+      });
+    } else {
+      await compileCommand(input, {
+        theme: answers.theme,
+        output: answers.output,
+        format: answers.format as any,
+        open: answers.open,
+        logLevel,
+      });
+    }
+  });
+
 // default command
 cli
-  .command('<input>', 'Compile a presentation (interactive if no flags given)')
+  .command('<input>', 'Compile a presentation (runs interactively or with manual flags)')
   .option('-t, --theme <theme>', 'Theme override')
   .option('-o, --output <file>', 'Output file path')
   .option('-f, --format <format>', 'Output format: html | pdf | pptx')
+  .option('-i, --interactive', 'Run interactively')
   .option('-w, --watch', 'Start live-reload watch server')
   .option('-p, --port <port>', 'Watch server port  (default: 3500)')
   .option('--open', 'Open output after compile')
   .option('--verbose', 'Verbose log output')
   .option('--silent', 'Suppress all output')
+  .example('  mdslide slides.md                     # Interactive mode (runs wizard)')
+  .example('  mdslide slides.md -i                  # Explicit interactive mode')
+  .example('  mdslide slides.md -t dark --open      # Manual flags mode (bypasses wizard)')
   .action(async (input: string, opts: any) => {
     const logLevel = opts.verbose ? 'verbose' : opts.silent ? 'silent' : 'info';
     const hasFlags = opts.theme || opts.output || opts.format || opts.watch || opts.open;
 
     // interactive prompt
-    if (!hasFlags) {
+    if (opts.interactive || !hasFlags) {
       const answers = await runInteractivePrompt(input);
 
       if (answers.watch) {
@@ -163,6 +222,10 @@ cli
 
 // parse all the commands
 try {
+  if (process.argv.length <= 2) {
+    cli.outputHelp();
+    process.exit(0);
+  }
   cli.parse(process.argv);
 } catch (err: any) {
   const log = new Logger('info');
