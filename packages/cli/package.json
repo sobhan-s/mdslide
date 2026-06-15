@@ -25,18 +25,12 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "cac": "^7.0.0"
-  },
-  "peerDependencies": {
-    "@mindfiredigital/mdslide-core": "workspace:*"
-  },
-  "peerDependenciesMeta": {
-    "@mindfiredigital/mdslide-core": {
-      "optional": false
-    }
-  },
-  "optionalDependencies": {
-    "open": "^10.0.0"
+    "@mindfiredigital/mdslide-core": "workspace:*",
+    "@mindfiredigital/mdslide-shared": "workspace:*",
+    "cac": "^7.0.0",
+    "chokidar": "^5.0.0",
+    "open": "^10.0.0",
+    "pptxgenjs": "^4.0.1"
   },
   "engines": {
     "node": ">=18.0.0"
