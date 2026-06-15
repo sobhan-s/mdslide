@@ -1,31 +1,12 @@
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
 import { Logger } from '../logger/index.js';
 import { Spinner } from '../ui/spinner.js';
-import {
-  InputNotFoundError,
-  InvalidFormatError,
-  ChromeNotFoundError,
-  CompileError,
-} from '../middleware/errors.js';
+import { InputNotFoundError, InvalidFormatError, CompileError } from '../middleware/errors.js';
 import type { CompileOptions, OutputFormat } from '../types/index.js';
 import { RELOAD_SCRIPT } from '../script/reloadScript.js';
 import { COMPILE_CONFIG, COMPILE_MESSAGES } from '../constants/index.js';
-
-// fixme: Chrome binary detection , current for testin purpost i use only chrome linux paths , in future add all hardcore path and add --browserpath "path"
-function findChromeBinary(): string {
-  // Used systemic candidate collection constant here
-  for (const bin of COMPILE_CONFIG.CHROME_CANDIDATES) {
-    try {
-      execSync(`which ${bin} > /dev/null 2>&1`);
-      return bin;
-    } catch {
-      // not found
-    }
-  }
-  throw new ChromeNotFoundError();
-}
+import { compileToPdf } from '../exports/pdfExports.js';
 
 // format detection (pdf, pptx, html)
 function detectFormat(
@@ -51,7 +32,7 @@ export async function runCompile(
   opts: CompileOptions,
   log: Logger,
   options?: { injectReload?: boolean }
-): Promise<{ html: string; slideCount: number; warnings: string[] }> {
+): Promise<{ html: string; slideCount: number; warnings: string[]; slides: any[]; meta: any }> {
   if (!fs.existsSync(inputFile)) throw new InputNotFoundError(inputFile);
 
   let Compiler: any;
@@ -77,10 +58,12 @@ export async function runCompile(
     html = html.replace('</body>', `${RELOAD_SCRIPT}\n</body>`);
   }
 
+  const slides = result.slides ?? [];
+  const meta = result.meta ?? {};
   const slideCount = result.slides?.length ?? 0;
   const warnings = result.warnings ?? [];
 
-  return { html, slideCount, warnings };
+  return { html, meta, slides, slideCount, warnings };
 }
 
 // Compiler the commands
@@ -112,21 +95,11 @@ export async function compileCommand(inputFile: string, opts: CompileOptions): P
       fs.mkdirSync(path.dirname(absOutput), { recursive: true });
       fs.writeFileSync(absOutput, html);
     } else if (format === 'pdf') {
-      const tempPath = path.join(path.dirname(absOutput), `.mdslide-tmp-${Date.now()}.html`);
-      fs.writeFileSync(tempPath, html);
-
-      try {
-        const chrome = findChromeBinary();
-        spinner.update(COMPILE_MESSAGES.SPINNER_LAUNCHING_CHROME);
-        // Used unified binary invocation flags constant here
-        execSync(
-          `"${chrome}" ${COMPILE_CONFIG.CHROME_FLAGS} ` +
-            `--print-to-pdf="${absOutput}" "${tempPath}"`,
-          { stdio: 'ignore' }
-        );
-      } finally {
-        if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
-      }
+      spinner.update('Launching Chrome for PDF export...');
+      await compileToPdf(html, absOutput, {
+        chromePath: process.env['CHROME_PATH'],
+        timeoutMs: opts.pdfTimeoutMs ?? 30_000,
+      });
     }
   } catch (err) {
     spinner.fail();

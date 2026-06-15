@@ -2,6 +2,7 @@ import fs from 'fs';
 import http from 'http';
 import path from 'path';
 import net from 'net';
+import chokidar from 'chokidar';
 import { Logger } from '../logger/index.js';
 import { Spinner } from '../ui/spinner.js';
 import { onShutdown } from '../middleware/signals.js';
@@ -62,7 +63,7 @@ export async function watchCommand(inputFile: string, opts: WatchOptions): Promi
   } catch (err) {
     spinner.fail(WATCH_MESSAGES.SPINNER_FAIL);
     log.error(err);
-    cachedHtml = buildErrorHtml(err);
+    process.exit(1);
   }
 
   const server = http.createServer((req, res) => {
@@ -108,6 +109,7 @@ export async function watchCommand(inputFile: string, opts: WatchOptions): Promi
   onShutdown(() => {
     server.close();
     clients.forEach((c) => c.end());
+    watcher.close().catch(() => {});
     log.raw('');
     log.step(WATCH_MESSAGES.SERVER_STOPPED);
   });
@@ -119,8 +121,15 @@ export async function watchCommand(inputFile: string, opts: WatchOptions): Promi
 
   let debounce: NodeJS.Timeout | null = null;
 
-  fs.watch(absInput, (eventType) => {
-    if (eventType !== 'change') return;
+  const watcher = chokidar.watch(absInput, {
+    ignoreInitial: true,
+  });
+
+  watcher.on('error', (err) => {
+    log.verbose(`Watcher encountered an error: ${(err as unknown as Error).message}`);
+  });
+
+  watcher.on('change', () => {
     if (debounce) clearTimeout(debounce);
     // Used debounce delay timing variable here
     debounce = setTimeout(async () => {
@@ -135,11 +144,11 @@ export async function watchCommand(inputFile: string, opts: WatchOptions): Promi
         cachedHtml = buildErrorHtml(err);
       }
 
-      for (const client of clients) {
+      for (let i = clients.length - 1; i >= 0; i--) {
         try {
-          client.write('data: reload\n\n');
+          clients[i].write('data: reload\n\n');
         } catch {
-          /* client disconnected */
+          clients.splice(i, 1);
         }
       }
     }, WATCH_CONFIG.DEBOUNCE_DELAY_MS);
