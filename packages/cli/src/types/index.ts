@@ -12,6 +12,8 @@ export interface CompileOptions extends GlobalOptions {
   format?: OutputFormat;
   open?: boolean;
   strict?: boolean;
+  pdfTimeoutMs?: number;
+  pptxMode?: 'screenshot' | 'editable';
 }
 
 export interface WatchOptions extends GlobalOptions {
@@ -54,6 +56,7 @@ export interface InteractiveResult {
   output: string;
   watch: boolean;
   open: boolean;
+  pptxMode?: 'screenshot' | 'editable';
 }
 
 export interface ValidationIssue {
@@ -75,4 +78,34 @@ export interface MdSlideConfig {
     chromePath?: string;
     printBackground?: boolean;
   };
+}
+
+export interface PdfExportOptions {
+  chromePath?: string;
+  timeoutMs?: number;
+  printBackground?: boolean;
+}
+
+export interface ScreenshotPptxOptions {
+  chromePath?: string;
+  timeoutMs?: number;
+  width?: number;
+  height?: number;
+  theme?: string;
+  baseDir?: string;
+}
+
+export interface PptxTheme {
+  bg: string;
+  text: string;
+  accent: string;
+  font: string;
+  cardBg: string;
+}
+
+// Flatten list structure to structured lines
+export interface FlatListLine {
+  text: any[];
+  bullet: boolean;
+  indent: number;
 }

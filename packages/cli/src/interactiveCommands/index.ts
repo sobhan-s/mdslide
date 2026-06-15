@@ -1,9 +1,7 @@
 import path from 'path';
-import fs from 'fs';
-import readline from 'readline';
 import { Logger } from '../logger/index.js';
 import { STYLES, COLORS, ERASE, CURSOR } from '../constants/index.js';
-import { Choice, InteractiveResult } from '../types/index.js';
+import { InteractiveResult } from '../types/index.js';
 import { outputFormat, themeTypes } from '../constants/formats.js';
 import { c } from './helper/helper.js';
 import { confirm, input, select } from './helper/index.js';
@@ -27,6 +25,28 @@ export async function runInteractivePrompt(inputFile: string): Promise<Interacti
   const defaultOut = `output.${format}`;
   const output = await input('Output file', defaultOut);
 
+  // pptx mode
+  let pptxMode: 'screenshot' | 'editable' = 'screenshot';
+  if (format === 'pptx') {
+    const pptxModeChoices = [
+      {
+        label: 'Screenshot',
+        value: 'screenshot' as const,
+        hint: 'Pixel-perfect rendering',
+        color: COLORS.green,
+      },
+      {
+        label: 'Editable/Normal',
+        value: 'editable' as const,
+        hint: 'Drag and drop native elements',
+        color: COLORS.blue,
+      },
+    ];
+    pptxMode = await select<'screenshot' | 'editable'>('PPTX mode', pptxModeChoices, {
+      color: true,
+    });
+  }
+
   // watch mode
   let watch = false;
   if (format === 'html') {
@@ -40,6 +60,9 @@ export async function runInteractivePrompt(inputFile: string): Promise<Interacti
   log.raw('');
   log.raw(`  ${c(COLORS.grey, '─'.repeat(40))}`);
   log.raw(`  ${c(COLORS.grey, 'format')}  ${c(COLORS.cyan + STYLES.bold, format.toUpperCase())}`);
+  if (format === 'pptx') {
+    log.raw(`  ${c(COLORS.grey, 'pptxMode')}  ${c(COLORS.cyan + STYLES.bold, pptxMode)}`);
+  }
   log.raw(`  ${c(COLORS.grey, 'theme ')}  ${c(COLORS.cyan + STYLES.bold, theme)}`);
   log.raw(`  ${c(COLORS.grey, 'output')}  ${c(COLORS.cyan + STYLES.bold, output)}`);
   if (format === 'html') {
@@ -55,5 +78,5 @@ export async function runInteractivePrompt(inputFile: string): Promise<Interacti
   }
 
   log.raw('');
-  return { format, theme, output, watch, open };
+  return { format, theme, output, watch, open, pptxMode };
 }
