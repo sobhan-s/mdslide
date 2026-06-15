@@ -2,3 +2,7 @@ export * from './sampleConfig.js';
 export * from './sampleSlide.js';
 export * from './terminalEscapeCode.js';
 export * from './tellyTypewriter.js';
+export * from './logs/initCommandLogs.js';
+export * from './logs/validationCommandLogs.js';
+export * from './logs/watchCommandLogs.js';
+export * from './logs/compileComandLogs.js';
