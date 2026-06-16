@@ -1,4 +1,4 @@
-export const SAMPLE_CONFIG = `import { defineConfig } from '@mindfiredigital/mdslide-cli';
+export const SAMPLE_CONFIG = `import { defineConfig } from '@mindfiredigital/markdown-cli';
 
 export default defineConfig({
   theme:  'light',
