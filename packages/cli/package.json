@@ -1,5 +1,5 @@
 {
-  "name": "@mindfiredigital/markdown-cli",
+  "name": "@mindfiredigital/mdslide-cli",
   "version": "1.0.0",
   "description": "CLI for mdslide - Markdown presentation compiler",
   "type": "module",

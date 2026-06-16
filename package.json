@@ -15,9 +15,12 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "e2e:run": "start-server-and-test 'bun packages/cli/dist/cli.js watch presentation-e2e.md --port 3030' http://localhost:3030 'cypress run'",
-    "e2e:open": "start-server-and-test 'bun packages/cli/dist/cli.js watch presentation-e2e.md --port 3030' http://localhost:3030 'cypress open'"
+    "e2e:open": "start-server-and-test 'bun packages/cli/dist/cli.js watch presentation-e2e.md --port 3030' http://localhost:3030 'cypress open'",
+    "version": "changeset version",
+    "release": "changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
     "@types/node": "^25.5.0",
