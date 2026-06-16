@@ -5,7 +5,7 @@
   "type": "module",
   "packageManager": "bun@1.2.23",
   "scripts": {
-    "build": "bun run --filter \"*\" build",
+    "build": "bun run --filter ./packages/shared build && bun run --filter ./packages/parser build && bun run --filter ./packages/core build &&bun run --filter ./packages/cli build",
     "dev": "bun run --filter \"*\" dev",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

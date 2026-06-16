@@ -5,4 +5,5 @@ export default defineConfig({
   ...baseConfig,
   entry: ['src/cli.ts', 'src/index.ts'],
   splitting: true,
+  dts: true,
 });

@@ -10,4 +10,5 @@ export default defineConfig({
     '@mindfiredigital/mdslide-parser',
     '@mindfiredigital/mdslide-shared',
   ],
+  dts: true,
 });
