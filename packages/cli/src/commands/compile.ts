@@ -7,6 +7,7 @@ import type { CompileOptions, OutputFormat } from '../types/index.js';
 import { RELOAD_SCRIPT } from '../script/reloadScript.js';
 import { COMPILE_CONFIG, COMPILE_MESSAGES } from '../constants/index.js';
 import { compileToPdf } from '../exports/pdfExports.js';
+import { compileToScreenshotPptx, compileToEditablePptx } from '../exports/pptxExports.js';
 
 // format detection (pdf, pptx, html)
 function detectFormat(
@@ -81,9 +82,14 @@ export async function compileCommand(inputFile: string, opts: CompileOptions): P
   let html: string;
   let slideCount: number;
   let warnings: string[];
+  let deck: any;
 
   try {
-    ({ html, slideCount, warnings } = await runCompile(absInput, opts, log));
+    const compileResult = await runCompile(absInput, opts, log);
+    html = compileResult.html;
+    slideCount = compileResult.slideCount;
+    warnings = compileResult.warnings;
+    deck = { slides: compileResult.slides, meta: compileResult.meta };
   } catch (err) {
     spinner.fail();
     log.error(err);
@@ -100,6 +106,21 @@ export async function compileCommand(inputFile: string, opts: CompileOptions): P
         chromePath: process.env['CHROME_PATH'],
         timeoutMs: opts.pdfTimeoutMs ?? 30_000,
       });
+    } else if (format === 'pptx') {
+      const pptxMode = opts.pptxMode ?? 'screenshot';
+      spinner.update(`Building PPTX (${pptxMode} mode)...`);
+      fs.mkdirSync(path.dirname(absOutput), { recursive: true });
+      if (pptxMode === 'editable') {
+        await compileToEditablePptx(deck, absOutput, {
+          theme: opts.theme,
+          baseDir: path.dirname(path.resolve(inputFile)),
+        });
+      } else {
+        await compileToScreenshotPptx(html, slideCount, absOutput, {
+          theme: opts.theme,
+          baseDir: path.dirname(path.resolve(inputFile)),
+        });
+      }
     }
   } catch (err) {
     spinner.fail();
