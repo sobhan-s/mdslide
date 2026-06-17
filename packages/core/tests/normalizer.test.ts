@@ -1,8 +1,16 @@
 import { describe, test, expect } from 'vitest';
 import { normalizeHeading } from '../src/normalizer/normalizeHeading.ts';
-import { parseLayoutOveride, resolveSlideLayout } from '../src/normalizer/normalizeLayout.ts';
+import {
+  parseLayoutOveride,
+  resolveSlideLayout,
+  parseBackgroundImage,
+} from '../src/normalizer/normalizeLayout.ts';
 import { extractSlideNotes } from '../src/normalizer/normalizeNote.ts';
-import { toSlideAstNode, normalizeSlide, normalizeSlides } from '../src/normalizer/mdAstToSlideBasedAst.ts';
+import {
+  toSlideAstNode,
+  normalizeSlide,
+  normalizeSlides,
+} from '../src/normalizer/mdAstToSlideBasedAst.ts';
 import type { Heading, RootContent } from 'mdast';
 import type { RawSlideBlock } from '../src/interfaces/index.ts';
 
@@ -39,6 +47,22 @@ describe('Normalize Layout', () => {
     const { layoutOverride, filteredNodes } = parseLayoutOveride(nodes);
     expect(layoutOverride).toBeUndefined();
     expect(filteredNodes).toHaveLength(2);
+  });
+
+  test('parseBackgroundImage extracts background image comments and cleans wrapper', () => {
+    const nodes: RootContent[] = [
+      { type: 'html', value: '<!-- backgroundImage: https://example.com/bg.png -->' },
+      { type: 'paragraph', children: [{ type: 'text', value: 'Hello' }] },
+    ];
+    const { backgroundImage, filteredNodes } = parseBackgroundImage(nodes);
+    expect(backgroundImage).toBe('https://example.com/bg.png');
+    expect(filteredNodes).toHaveLength(1);
+
+    const nodesWithUrlWrapper: RootContent[] = [
+      { type: 'html', value: '<!-- background-image: url("https://example.com/bg2.png") -->' },
+    ];
+    const { backgroundImage: bg2 } = parseBackgroundImage(nodesWithUrlWrapper);
+    expect(bg2).toBe('https://example.com/bg2.png');
   });
 
   test('resolveSlideLayout returns custom layout if layoutOverride is valid', () => {
@@ -149,13 +173,28 @@ describe('normalizeSlide', () => {
     expect(slide.content[0].type).toBe('paragraph');
     expect(slide.notes).toBe('Speaker note');
   });
+
+  test('normalizes slide block with background image comment', () => {
+    const rawBlock: RawSlideBlock = {
+      id: 'slide-bg',
+      nodes: [
+        { type: 'html', value: '<!-- backgroundImage: https://example.com/bg.png dark -->' },
+        { type: 'heading', depth: 1, children: [{ type: 'text', value: 'Slide Title' }] },
+      ],
+    };
+    const slide = normalizeSlide(rawBlock);
+    expect(slide.backgroundImage).toBe('https://example.com/bg.png dark');
+  });
 });
 
 describe('normalizeSlides', () => {
   test('filters out slides with no title and no content', () => {
     const rawBlocks: RawSlideBlock[] = [
       { id: '1', nodes: [] }, // empty slide
-      { id: '2', nodes: [{ type: 'heading', depth: 2, children: [{ type: 'text', value: 'Title' }] }] },
+      {
+        id: '2',
+        nodes: [{ type: 'heading', depth: 2, children: [{ type: 'text', value: 'Title' }] }],
+      },
     ];
     const slides = normalizeSlides(rawBlocks);
     expect(slides).toHaveLength(1);
