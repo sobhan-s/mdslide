@@ -29,6 +29,7 @@ export function renderDeck(deck: SlideDeck, options: RenderDeckOptions = {}): st
   <style id="mdslideTheme">${themeEngine.resolveTheme(theme)}</style>
   <link rel="stylesheet" href="${prismThemeUrl}" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" />
   <style>
     /* Custom Prism overrides to match slide styling perfectly */
     pre[class*="language-"] {
