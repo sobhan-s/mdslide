@@ -49,6 +49,33 @@ This is a paragraph.
     expect((table as any).children).toHaveLength(2); // header row + body row
   });
 
+  test('parses markdown math features (like inline and block math)', () => {
+    const md = `
+Inline math: $E = mc^2$
+
+Block math:
+$$
+a^2 + b^2 = c^2
+$$
+    `;
+    const ast = parseMarkdownToAST(md);
+
+    let inlineMathNode: any = null;
+    let mathNode: any = null;
+
+    function walk(node: any) {
+      if (node.type === 'inlineMath') inlineMathNode = node;
+      if (node.type === 'math') mathNode = node;
+      if (node.children) node.children.forEach(walk);
+    }
+    ast.children.forEach(walk);
+
+    expect(inlineMathNode).not.toBeNull();
+    expect(inlineMathNode.value).toBe('E = mc^2');
+    expect(mathNode).not.toBeNull();
+    expect(mathNode.value.trim()).toBe('a^2 + b^2 = c^2');
+  });
+
   describe('Clean AST Options and Chaining', () => {
     const md = '# Hello World\nParagraph content.';
 
