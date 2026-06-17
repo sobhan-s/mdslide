@@ -80,6 +80,7 @@ export function processOverflow(slides: Slide[]): Slide[] {
         content: currentSlideContent,
         notes: isContinuation ? undefined : slide.notes,
         layoutOverride: slide.layoutOverride,
+        backgroundImage: slide.backgroundImage,
       });
 
       continuationCount++;
@@ -99,7 +100,7 @@ export function processOverflow(slides: Slide[]): Slide[] {
           continue;
         }
 
-        if (node.type === 'code' && availableHeight > 100) {
+        if (node.type === 'code' && node.lang !== 'mermaid' && availableHeight > 100) {
           const lines = (node.value || '').split('\n');
           const maxLines = Math.floor((availableHeight - 40) / 16);
 
@@ -184,6 +185,7 @@ export function processOverflow(slides: Slide[]): Slide[] {
         content: currentSlideContent,
         notes: isContinuation ? undefined : slide.notes,
         layoutOverride: slide.layoutOverride,
+        backgroundImage: slide.backgroundImage,
       });
     }
   }
