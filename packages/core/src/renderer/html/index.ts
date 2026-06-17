@@ -97,7 +97,52 @@ export function renderDeck(deck: SlideDeck, options: RenderDeckOptions = {}): st
       height: auto !important;
     }
 
-    
+    .bgImageDark,
+    .bgImageDark p,
+    .bgImageDark li,
+    .bgImageDark h1,
+    .bgImageDark h2,
+    .bgImageDark h3,
+    .bgImageDark h4,
+    .bgImageDark h5,
+    .bgImageDark h6,
+    .bgImageDark span,
+    .bgImageDark strong,
+    .bgImageDark em,
+    .bgImageDark td,
+    .bgImageDark th {
+      color: #fafafa !important;
+      -webkit-text-fill-color: #fafafa !important;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,0.5) !important;
+    }
+    .bgImageDark blockquote {
+      border-left-color: rgba(255,255,255,0.4) !important;
+      background: rgba(0,0,0,0.3) !important;
+    }
+
+    .bgImageLight,
+    .bgImageLight p,
+    .bgImageLight li,
+    .bgImageLight h1,
+    .bgImageLight h2,
+    .bgImageLight h3,
+    .bgImageLight h4,
+    .bgImageLight h5,
+    .bgImageLight h6,
+    .bgImageLight span,
+    .bgImageLight strong,
+    .bgImageLight em,
+    .bgImageLight td,
+    .bgImageLight th {
+      color: #18181b !important;
+      -webkit-text-fill-color: #18181b !important;
+      text-shadow: 0 1px 2px rgba(255,255,255,0.8) !important;
+    }
+    .bgImageLight blockquote {
+      border-left-color: rgba(0,0,0,0.2) !important;
+      background: rgba(255,255,255,0.3) !important;
+    }
+
     @media print {
       @page {
         size: 1920px 1080px;
