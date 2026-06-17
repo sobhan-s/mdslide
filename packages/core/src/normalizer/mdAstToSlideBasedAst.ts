@@ -5,7 +5,7 @@ import { RawSlideBlock } from '../interfaces/index.js';
 import { isHeading } from '../parser/index.js';
 import { normalizeHeading } from './normalizeHeading.js';
 import { extractSlideNotes } from './normalizeNote.js';
-import { parseLayoutOveride, resolveSlideLayout } from './normalizeLayout.js';
+import { parseLayoutOveride, resolveSlideLayout, parseBackgroundImage } from './normalizeLayout.js';
 
 // Converts generic MDAST node into Slide AST Node
 export function toSlideAstNode(node: RootContent, isTableHeader = false): SlideNode {
@@ -48,10 +48,13 @@ export function normalizeSlide(rawBlock: RawSlideBlock): Slide {
   const { layoutOverride, filteredNodes: nodesWithoutLayout } =
     parseLayoutOveride(nodesWithoutNotes);
 
+  const { backgroundImage, filteredNodes: nodesWithoutBg } =
+    parseBackgroundImage(nodesWithoutLayout);
+
   let slideTitle: string | undefined;
   const slideContent: SlideNode[] = [];
 
-  for (const node of nodesWithoutLayout) {
+  for (const node of nodesWithoutBg) {
     if (isHeading(node)) {
       const headingNode = node as Heading;
       const normalized = normalizeHeading(headingNode);
@@ -79,6 +82,7 @@ export function normalizeSlide(rawBlock: RawSlideBlock): Slide {
     content: slideContent,
     notes,
     layoutOverride,
+    backgroundImage,
   });
 }
 

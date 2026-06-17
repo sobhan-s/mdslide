@@ -27,6 +27,35 @@ export function parseLayoutOveride(nodes: RootContent[]): {
   };
 }
 
+export function parseBackgroundImage(nodes: RootContent[]): {
+  backgroundImage: string | undefined;
+  filteredNodes: RootContent[];
+} {
+  let backgroundImage: string | undefined;
+  const filteredNodes: RootContent[] = [];
+
+  for (const node of nodes) {
+    if (node.type === 'html') {
+      const val = node.value.trim();
+      const bgMatch = val.match(/^<!--\s*background-?image:\s*(.+?)\s*-->$/i);
+      if (bgMatch) {
+        let bgUrl = bgMatch[1].trim();
+        const urlWrapMatch = bgUrl.match(/^url\((['"]?)(.+?)\1\)$/i);
+        if (urlWrapMatch) {
+          bgUrl = urlWrapMatch[2];
+        }
+        backgroundImage = bgUrl;
+        continue;
+      }
+    }
+    filteredNodes.push(node);
+  }
+  return {
+    backgroundImage,
+    filteredNodes,
+  };
+}
+
 export function resolveSlideLayout(
   nodes: SlideNode[],
   hasTitle: boolean,
