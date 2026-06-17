@@ -9,7 +9,10 @@ describe('Overflow Engine', () => {
       id: 'slide-1',
       title: 'Short Slide',
       content: [
-        createSlideNode({ type: 'paragraph', children: [createSlideNode({ type: 'text', value: 'Hello' })] }),
+        createSlideNode({
+          type: 'paragraph',
+          children: [createSlideNode({ type: 'text', value: 'Hello' })],
+        }),
       ],
     });
 
@@ -46,12 +49,14 @@ describe('Overflow Engine', () => {
   test('splits long list when height budget is exceeded', () => {
     // List item base height = max(22, wrapLines * 20)
     // 35 items of ~25px each = ~875px, which is > 650px.
-    const listItems = Array(35).fill(null).map((_, i) =>
-      createSlideNode({
-        type: 'listItem',
-        children: [createSlideNode({ type: 'text', value: `List item number ${i}` })],
-      })
-    );
+    const listItems = Array(35)
+      .fill(null)
+      .map((_, i) =>
+        createSlideNode({
+          type: 'listItem',
+          children: [createSlideNode({ type: 'text', value: `List item number ${i}` })],
+        })
+      );
 
     const slide = createSlide({
       id: 'slide-list',
@@ -75,12 +80,19 @@ describe('Overflow Engine', () => {
   test('splits general flat content slide when height budget is exceeded', () => {
     // 30 paragraph nodes. Each paragraph = ~28px.
     // 30 * 28 = 840px > 650px.
-    const paragraphs = Array(30).fill(null).map((_, i) =>
-      createSlideNode({
-        type: 'paragraph',
-        children: [createSlideNode({ type: 'text', value: `This is paragraph number ${i} which has some content text.` })],
-      })
-    );
+    const paragraphs = Array(30)
+      .fill(null)
+      .map((_, i) =>
+        createSlideNode({
+          type: 'paragraph',
+          children: [
+            createSlideNode({
+              type: 'text',
+              value: `This is paragraph number ${i} which has some content text.`,
+            }),
+          ],
+        })
+      );
 
     const slide = createSlide({
       id: 'slide-paragraphs',
@@ -93,5 +105,25 @@ describe('Overflow Engine', () => {
     expect(result[0].id).toBe('slide-paragraphs');
     expect(result[1].id).toBe('slide-paragraphs-cont-p1');
     expect(result[1].title).toBe('Long Paragraphs (Cont.)');
+  });
+
+  test('does not split code block if it is a mermaid diagram', () => {
+    const lines = Array(45).fill('A --> B').join('\n');
+    const slide = createSlide({
+      id: 'slide-mermaid',
+      title: 'Mermaid Diagram',
+      content: [
+        createSlideNode({
+          type: 'code',
+          lang: 'mermaid',
+          value: lines,
+        }),
+      ],
+    });
+
+    const result = processOverflow([slide]);
+    expect(result).toHaveLength(1);
+    expect(result[0].content).toHaveLength(1);
+    expect(result[0].content[0].value).toBe(lines);
   });
 });
