@@ -43,7 +43,9 @@ export function parseMarkdown(markdown: string): ParseMarkdownResult {
         }
 
         if (isHeading(node) && 'depth' in node && node.depth === 2 && currentNodes.length > 0) {
-          pushSlide();
+          if (!hasThematicBreak) {
+            pushSlide();
+          }
         }
 
         currentNodes.push(node);

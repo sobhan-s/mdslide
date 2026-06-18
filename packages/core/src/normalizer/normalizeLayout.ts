@@ -56,6 +56,45 @@ export function parseBackgroundImage(nodes: RootContent[]): {
   };
 }
 
+export function parseTitlePositioning(nodes: RootContent[]): {
+  titleAlign: string | undefined;
+  titlePosition: string | undefined;
+  filteredNodes: RootContent[];
+} {
+  let titleAlign: string | undefined;
+  let titlePosition: string | undefined;
+  const filteredNodes: RootContent[] = [];
+
+  for (const node of nodes) {
+    if (node.type === 'html') {
+      const val = node.value.trim();
+      const alignMatch = val.match(/^<!--\s*titleAlign:\s*(\w+)\s*-->$/i);
+      if (alignMatch) {
+        titleAlign = alignMatch[1].toLowerCase();
+        continue;
+      }
+      const positionMatch = val.match(/^<!--\s*titlePosition:\s*(\w+)\s*-->$/i);
+      if (positionMatch) {
+        const pos = positionMatch[1].toLowerCase();
+        if (pos === 'buttom') {
+          titlePosition = 'bottom';
+        } else if (pos === 'middle') {
+          titlePosition = 'center';
+        } else {
+          titlePosition = pos;
+        }
+        continue;
+      }
+    }
+    filteredNodes.push(node);
+  }
+  return {
+    titleAlign,
+    titlePosition,
+    filteredNodes,
+  };
+}
+
 export function resolveSlideLayout(
   nodes: SlideNode[],
   hasTitle: boolean,

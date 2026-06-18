@@ -32,7 +32,7 @@ export class Compiler {
     const { slides: rawBlocks } = parseMarkdown(content);
 
     // Transform generic MDAST slide blocks to presentation Slide AST
-    const normalizedSlides = normalizeSlides(rawBlocks);
+    const normalizedSlides = normalizeSlides(rawBlocks, meta);
 
     // Run AST transforms
     const transformedSlides = runTransforms(normalizedSlides);
