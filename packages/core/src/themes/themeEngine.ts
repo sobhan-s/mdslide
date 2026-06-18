@@ -9,12 +9,22 @@ export class ThemeEngine {
     return `
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html {
+  font-size: 20px;
+}
+
 body {
   font-family: var(--slide-font, 'Inter', system-ui, sans-serif);
   background: var(--slide-bg);
   color: var(--slide-text);
   height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -22,9 +32,15 @@ body {
 
 /* Deck Container */
 .deck {
-  width: 100%;
-  height: 100%;
+  width: 1920px;
+  height: 1080px;
   position: relative;
+  transform-origin: center center;
+  flex-shrink: 0;
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.25);
+  background: var(--slide-bg);
+  border-radius: var(--slide-radius, 12px);
+  overflow: hidden;
 }
 
 /* Slide base */
@@ -36,8 +52,8 @@ body {
   justify-content: flex-start;
   align-items: flex-start;
   width: 100%;
-  height: 100vh;
-  padding: 4.5rem 6.5rem;
+  height: 100%;
+  padding: 5.5rem 7.5rem;
   gap: 0;
   opacity: 0;
   pointer-events: none;
@@ -64,24 +80,24 @@ body {
 .slide[data-type="title"] {
   align-items: flex-start;
   justify-content: center;
-  padding: 5rem 7rem;
+  padding: 6.5rem 8.5rem;
 }
 
 .slide[data-type="statement"] {
   align-items: center;
   text-align: center;
   justify-content: center;
-  padding: 5rem 8rem;
+  padding: 6.5rem 9.5rem;
 }
 
 /* Title (h1 / h2 on title slides) */
 .slideTitle {
   font-size: var(--title-size, 3.4rem);
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.15;
   letter-spacing: -0.025em;
   color: var(--slide-text);
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
   width: 100%;
   text-align: left;
 }
@@ -91,16 +107,71 @@ body {
   width: 100%;
 }
 
+/* Title Slide positioning/alignment overrides */
+body .slide[data-title-align="left"] {
+  align-items: flex-start !important;
+  text-align: left !important;
+}
+body .slide[data-title-align="left"] .slideTitle {
+  text-align: left !important;
+}
+body .slide[data-title-align="left"] .slideTitle::after {
+  margin-left: 0 !important;
+}
+
+body .slide[data-title-align="center"] {
+  align-items: center !important;
+  text-align: center !important;
+}
+body .slide[data-title-align="center"] .slideTitle {
+  text-align: center !important;
+}
+body .slide[data-title-align="center"] .slideTitle::after {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+body .slide[data-title-align="right"] {
+  align-items: flex-end !important;
+  text-align: right !important;
+}
+body .slide[data-title-align="right"] .slideTitle {
+  text-align: right !important;
+}
+body .slide[data-title-align="right"] .slideTitle::after {
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
+
+body .slide[data-title-position="top"] {
+  justify-content: flex-start !important;
+}
+
+body .slide[data-title-position="center"],
+body .slide[data-title-position="middle"] {
+  justify-content: center !important;
+}
+
+body .slide[data-title-position="bottom"] {
+  justify-content: flex-end !important;
+}
+
+body .slide[data-title-position="bottom"] .slideContent,
+body .slide[data-title-position="center"] .slideContent,
+body .slide[data-title-position="middle"] .slideContent {
+  flex: none !important;
+}
+
 /* Content area */
 .slideContent {
   width: 100%;
   flex: 1;
   font-size: var(--body-size, 1.35rem);
-  line-height: 1.7;
+  line-height: 1.8;
   color: var(--slide-text);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1.25rem;
   overflow: hidden;
 }
 
@@ -109,39 +180,39 @@ body {
   font-size: var(--title-size, 3.4rem);
   font-weight: 700;
   letter-spacing: -0.025em;
-  line-height: 1.1;
-  margin-bottom: 1.25rem;
+  line-height: 1.15;
+  margin-bottom: 1.75rem;
 }
 
 .slideContent h2 {
-  font-size: var(--h2-size, 2.4rem);
+  font-size: var(--h2-size, 2.6rem);
   font-weight: 700;
   letter-spacing: -0.02em;
-  line-height: 1.15;
-  margin-bottom: 1rem;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
   color: var(--slide-text);
 }
 
 .slideContent h3 {
-  font-size: var(--h3-size, 1.7rem);
+  font-size: var(--h3-size, 1.8rem);
   font-weight: 600;
   letter-spacing: -0.01em;
-  line-height: 1.2;
-  margin-bottom: 0.75rem;
+  line-height: 1.25;
+  margin-bottom: 1.25rem;
   color: var(--slide-muted);
 }
 
 .slideContent h4, .slideContent h5, .slideContent h6 {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.8rem;
 }
 
 /* Paragraph */
 .slideContent p {
   font-size: var(--body-size, 1.35rem);
-  line-height: 1.7;
-  margin-bottom: 0.6rem;
+  line-height: 1.75;
+  margin-bottom: 1rem;
   max-width: 75ch;
 }
 
@@ -155,16 +226,16 @@ body {
 /* Lists */
 .slideContent ul,
 .slideContent ol {
-  padding-left: 1.75rem;
+  padding-left: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  margin-bottom: 0.5rem;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
 }
 
 .slideContent li {
   font-size: var(--li-size, 1.3rem);
-  line-height: 1.55;
+  line-height: 1.6;
   padding-left: 0.25rem;
 }
 
@@ -179,14 +250,14 @@ body {
 
 /* Blockquote */
 .slideContent blockquote {
-  border-left: 5px solid var(--slide-accent);
-  padding: 1.25rem 2rem;
-  margin: 0.5rem 0;
+  border-left: 6px solid var(--slide-accent);
+  padding: 1.5rem 2.5rem;
+  margin: 1rem 0;
   background: rgba(128,128,128,0.05);
   border-radius: 0 var(--slide-radius) var(--slide-radius) 0;
-  font-size: 1.5rem;
+  font-size: 1.55rem;
   font-style: italic;
-  line-height: 1.55;
+  line-height: 1.6;
   color: var(--slide-muted);
 }
 
@@ -355,6 +426,16 @@ body {
 /* Speaker notes */
 .notes { display: none; }
 
+/* Fragments */
+.fragment {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.fragment.visible {
+  opacity: 1;
+}
+
 /* Progress bar */
 .progressBarContainer {
   position: fixed;
@@ -444,9 +525,19 @@ body.showDok .dokContainer,
     print-color-adjust: exact !important;
     overflow: visible !important;
     height: auto !important;
+    display: block !important;
   }
 
-  .deck { height: auto !important; overflow: visible !important; }
+  .deck {
+    width: 1920px !important;
+    height: 1080px !important;
+    transform: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    position: relative !important;
+  }
 
   .slide {
     position: relative !important;
@@ -463,6 +554,10 @@ body.showDok .dokContainer,
   }
 
   .dokContainer, .progressBarContainer { display: none !important; }
+
+  .fragment {
+    opacity: 1 !important;
+  }
 }
 `;
   }
