@@ -5,7 +5,12 @@ import { RawSlideBlock } from '../interfaces/index.js';
 import { isHeading } from '../parser/index.js';
 import { normalizeHeading } from './normalizeHeading.js';
 import { extractSlideNotes } from './normalizeNote.js';
-import { parseLayoutOveride, resolveSlideLayout, parseBackgroundImage } from './normalizeLayout.js';
+import {
+  parseLayoutOveride,
+  resolveSlideLayout,
+  parseBackgroundImage,
+  parseTitlePositioning,
+} from './normalizeLayout.js';
 
 // Converts generic MDAST node into Slide AST Node
 export function toSlideAstNode(node: RootContent, isTableHeader = false): SlideNode {
@@ -39,6 +44,7 @@ export function toSlideAstNode(node: RootContent, isTableHeader = false): SlideN
     url: 'url' in node ? String(node.url) : undefined,
     alt: 'alt' in node ? String(node.alt) : undefined,
     header: isTableHeader || ('header' in node ? Boolean(node.header) : undefined),
+    depth: 'depth' in node ? Number(node.depth) : undefined,
   });
 }
 
@@ -51,22 +57,32 @@ export function normalizeSlide(rawBlock: RawSlideBlock): Slide {
   const { backgroundImage, filteredNodes: nodesWithoutBg } =
     parseBackgroundImage(nodesWithoutLayout);
 
+  const {
+    titleAlign,
+    titlePosition,
+    filteredNodes: nodesWithoutPos,
+  } = parseTitlePositioning(nodesWithoutBg);
+
   let slideTitle: string | undefined;
   const slideContent: SlideNode[] = [];
 
-  for (const node of nodesWithoutBg) {
+  for (const node of nodesWithoutPos) {
     if (isHeading(node)) {
       const headingNode = node as Heading;
       const normalized = normalizeHeading(headingNode);
 
       if (headingNode.depth === 1) {
-        slideTitle = normalized.text;
-        continue;
+        if (!slideTitle) {
+          slideTitle = normalized.text;
+          continue;
+        }
       }
 
       if (headingNode.depth === 2) {
-        slideTitle = slideTitle ?? normalized.text;
-        continue;
+        if (!slideTitle) {
+          slideTitle = normalized.text;
+          continue;
+        }
       }
     }
 
@@ -83,9 +99,36 @@ export function normalizeSlide(rawBlock: RawSlideBlock): Slide {
     notes,
     layoutOverride,
     backgroundImage,
+    titleAlign,
+    titlePosition,
   });
 }
 
-export function normalizeSlides(rawBlocks: RawSlideBlock[]): Slide[] {
-  return rawBlocks.map(normalizeSlide).filter((s) => s.title !== undefined || s.content.length > 0);
+export function normalizeSlides(
+  rawBlocks: RawSlideBlock[],
+  meta?: Record<string, unknown>
+): Slide[] {
+  return rawBlocks
+    .map((rawBlock) => {
+      const slide = normalizeSlide(rawBlock);
+      if (meta) {
+        const align = meta.titleAlign ?? meta.titlealign;
+        if (align && !slide.titleAlign) {
+          slide.titleAlign = String(align).toLowerCase();
+        }
+        const position = meta.titlePosition ?? meta.titleposition;
+        if (position && !slide.titlePosition) {
+          const pos = String(position).toLowerCase();
+          if (pos === 'buttom') {
+            slide.titlePosition = 'bottom';
+          } else if (pos === 'middle') {
+            slide.titlePosition = 'center';
+          } else {
+            slide.titlePosition = pos;
+          }
+        }
+      }
+      return slide;
+    })
+    .filter((s) => s.title !== undefined || s.content.length > 0);
 }

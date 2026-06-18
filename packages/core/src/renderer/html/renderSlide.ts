@@ -4,6 +4,8 @@ import { renderCodeBlock, renderInlineCode } from './renderCode.js';
 import { renderTable, renderTableRow, renderTableCell } from './renderTable.js';
 import { sanitizeHtml, sanitizeUrl } from '../../utils/index.js';
 
+let globalFragmentCounter = 0;
+
 function renderMath(formula: string, displayMode: boolean): string {
   try {
     return katex.renderToString(formula, {
@@ -93,6 +95,11 @@ export function nodeToHtml(node: SlideNode): string {
       return `<p>${childrenToHtml(node)}</p>`;
     }
 
+    case 'heading': {
+      const depth = node.depth ?? 3;
+      return `<h${depth}>${childrenToHtml(node)}</h${depth}>`;
+    }
+
     case 'text':
       return sanitizeHtml(node.value ?? '');
 
@@ -124,13 +131,15 @@ export function nodeToHtml(node: SlideNode): string {
       const itemsHtml = (node.children ?? [])
         .map((item) => {
           if (!listItemHasImage(item)) {
-            return `<li>${childrenToHtml(item)}</li>`;
+            globalFragmentCounter++;
+            return `<li class="fragment" id="frag-${globalFragmentCounter}">${childrenToHtml(item)}</li>`;
           }
           // Extract images from this item
           const { clean, images } = extractImages(item.children ?? []);
           collectedImages.push(...images);
           const textContent = clean.map(nodeToHtml).join('');
-          return `<li>${textContent}</li>`;
+          globalFragmentCounter++;
+          return `<li class="fragment" id="frag-${globalFragmentCounter}">${textContent}</li>`;
         })
         .join('');
 
@@ -143,8 +152,10 @@ export function nodeToHtml(node: SlideNode): string {
       return `<${tag}>${itemsHtml}</${tag}>${imagesHtml}`;
     }
 
-    case 'listItem':
-      return `<li>${childrenToHtml(node)}</li>`;
+    case 'listItem': {
+      globalFragmentCounter++;
+      return `<li class="fragment" id="frag-${globalFragmentCounter}">${childrenToHtml(node)}</li>`;
+    }
 
     case 'blockquote':
       return `<blockquote>${childrenToHtml(node)}</blockquote>`;
@@ -152,7 +163,8 @@ export function nodeToHtml(node: SlideNode): string {
     case 'image': {
       const src = node.url ?? node.value ?? '';
       const alt = node.alt ?? '';
-      return `<img src="${sanitizeUrl(src, true)}" alt="${sanitizeHtml(alt)}" loading="lazy" />`;
+      globalFragmentCounter++;
+      return `<img src="${sanitizeUrl(src, true)}" alt="${sanitizeHtml(alt)}" class="fragment" id="frag-${globalFragmentCounter}" loading="lazy" />`;
     }
 
     case 'link': {
@@ -280,7 +292,16 @@ export function renderSlide(slide: Slide): string {
     bgStyle = ` style="background-image: url('${sanitizeHtml(cleanUrl)}') !important; background-size: cover !important; background-position: center !important; background-repeat: no-repeat !important;"`;
   }
 
-  return `<section class="slide"${bgAttr}${bgStyle} data-type="${slide.type}" data-id="${slide.id}">
+  let alignAttr = '';
+  if (slide.titleAlign) {
+    alignAttr = ` data-title-align="${sanitizeHtml(slide.titleAlign)}"`;
+  }
+  let posAttr = '';
+  if (slide.titlePosition) {
+    posAttr = ` data-title-position="${sanitizeHtml(slide.titlePosition)}"`;
+  }
+
+  return `<section class="slide"${bgAttr}${bgStyle}${alignAttr}${posAttr} data-type="${slide.type}" data-id="${slide.id}">
   ${titleHtml}
   <div class="slideContent">
     ${contentHtml}
