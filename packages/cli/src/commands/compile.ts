@@ -105,6 +105,7 @@ export async function compileCommand(inputFile: string, opts: CompileOptions): P
       await compileToPdf(html, absOutput, {
         chromePath: process.env['CHROME_PATH'],
         timeoutMs: opts.pdfTimeoutMs ?? 30_000,
+        baseDir: path.dirname(path.resolve(inputFile)),
       });
     } else if (format === 'pptx') {
       const pptxMode = opts.pptxMode ?? 'screenshot';

@@ -9,7 +9,7 @@ import { onShutdown } from '../middleware/signals.js';
 import { InputNotFoundError, PortInUseError } from '../middleware/errors.js';
 import { runCompile } from './compile.js';
 import type { WatchOptions } from '../types/index.js';
-import { link } from '../utils/index.js';
+import { link, createStaticServer } from '../utils/index.js';
 import { WATCH_CONFIG, WATCH_MESSAGES, ERROR_OVERLAY_TEMPLATE } from '../constants/index.js';
 
 function buildErrorHtml(err: unknown): string {
@@ -66,36 +66,34 @@ export async function watchCommand(inputFile: string, opts: WatchOptions): Promi
     process.exit(1);
   }
 
-  const server = http.createServer((req, res) => {
-    const url = req.url ?? '/';
+  const liveReloadHandler = (req: http.IncomingMessage, res: http.ServerResponse) => {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    });
+    res.write(': connected\n\n');
+    clients.push(res);
 
-    // Used route config constant here
-    if (url === WATCH_CONFIG.LIVE_RELOAD_PATH) {
-      res.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
-        'X-Accel-Buffering': 'no',
-      });
-      res.write(': connected\n\n');
-      clients.push(res);
+    const heartbeat = setInterval(
+      () => res.write(': ping\n\n'),
+      WATCH_CONFIG.SSE_HEARTBEAT_INTERVAL_MS
+    );
+    req.on('close', () => {
+      clearInterval(heartbeat);
+      const i = clients.indexOf(res);
+      if (i !== -1) clients.splice(i, 1);
+    });
+  };
 
-      // Used SSE timing variable here
-      const heartbeat = setInterval(
-        () => res.write(': ping\n\n'),
-        WATCH_CONFIG.SSE_HEARTBEAT_INTERVAL_MS
-      );
-      req.on('close', () => {
-        clearInterval(heartbeat);
-        const i = clients.indexOf(res);
-        if (i !== -1) clients.splice(i, 1);
-      });
-      return;
-    }
-
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(cachedHtml);
-  });
+  const baseDir = path.dirname(absInput);
+  const server = createStaticServer(
+    () => cachedHtml,
+    baseDir,
+    WATCH_CONFIG.LIVE_RELOAD_PATH,
+    liveReloadHandler
+  );
 
   server.listen(port, () => {
     const url = `http://localhost:${port}`;
