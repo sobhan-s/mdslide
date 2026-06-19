@@ -1,5 +1,6 @@
 import { parseMarkdownToAST } from '@mindfiredigital/mdslide-parser';
 import type { Root, RootContent } from 'mdast';
+import { randomUUID } from 'node:crypto';
 import type { RawSlideBlock, ParseMarkdownResult } from '../interfaces/index.js';
 import { isThematicBreak, isHeading } from './lexer.js';
 import { MAX_SLIDE_SCORE } from '../constants/index.js';
@@ -29,7 +30,7 @@ export function parseMarkdown(markdown: string): ParseMarkdownResult {
       const pushSlide = () => {
         if (currentNodes.length > 0) {
           slides.push({
-            id: globalThis.crypto.randomUUID(),
+            id: randomUUID(),
             nodes: currentNodes,
           });
           currentNodes = [];
@@ -65,7 +66,7 @@ export function parseMarkdown(markdown: string): ParseMarkdownResult {
         const pushSlide = () => {
           if (currentNodes.length > 0) {
             slides.push({
-              id: globalThis.crypto.randomUUID(),
+              id: randomUUID(),
               nodes: currentNodes,
             });
             currentNodes = [];
@@ -93,7 +94,7 @@ export function parseMarkdown(markdown: string): ParseMarkdownResult {
         const pushSlide = () => {
           if (currentNodes.length > 0) {
             slides.push({
-              id: globalThis.crypto.randomUUID(),
+              id: randomUUID(),
               nodes: currentNodes,
             });
 
