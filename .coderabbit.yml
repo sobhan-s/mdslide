@@ -1,0 +1,183 @@
+# ---------------------------------------------------------------------------
+# CodeRabbit Configuration for mindfiredigital/mdslide
+#
+# Stack   : Bun + TypeScript + TSup + Vitest + Cypress
+# Tooling : Bun Workspaces + Turborepo + ESLint + Prettier + Changesets
+# Pattern : Monorepo with parser, core, cli, and shared packages
+#
+# Validate : https://docs.coderabbit.ai/configuration/yaml-validator
+# Reference: https://docs.coderabbit.ai/reference/configuration
+# ---------------------------------------------------------------------------
+
+language: 'en-US'
+
+tone_instructions: 'Senior Node/TypeScript reviewer. Be concise. Prioritise monorepo boundaries, Node/CLI process spawning, browser automation (headless chrome for PDF/PPTX), markdown rendering & AST parsing safety, local HTTP server security, test coverage, and Turborepo setup. Flag real architectural risks; suggest concrete code improvements.'
+
+early_access: false
+
+reviews:
+  profile: 'assertive'
+  request_changes_workflow: true
+
+  high_level_summary: true
+  high_level_summary_instructions: >
+    Summarise the PR in concise bullets grouped by:
+    CLI, Core rendering engine, Parser, Shared packages, Tests (Vitest & Cypress),
+    and Tooling/CI. End with "Breaking changes: None" unless a CLI command,
+    output format, or programmatic API changes.
+  high_level_summary_in_walkthrough: false
+
+  collapse_walkthrough: false
+  changed_files_summary: true
+  sequence_diagrams: true
+  estimate_code_review_effort: true
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+
+  suggested_labels: true
+  auto_apply_labels: false
+  suggested_reviewers: true
+  auto_assign_reviewers: false
+
+  commit_status: true
+  fail_commit_status: false
+  review_status: true
+  review_details: true
+
+  poem: false
+  in_progress_fortune: false
+
+  auto_review:
+    enabled: true
+    base_branches:
+      - main
+      - dev
+
+  path_filters:
+    - '!dist/**'
+    - '!coverage/**'
+    - '!node_modules/**'
+    - '!bun.lock'
+    - '!**/*.snap'
+    - '!**/__snapshots__/**'
+    - '!**/*.{png,jpg,jpeg,gif,webp,ico,zip}'
+
+  path_instructions:
+    - path: 'packages/cli/src/**/*.ts'
+      instructions: |
+        Review as CLI utility code.
+        - CLI parsing (cac) options must stay clean, robust, and correctly typed.
+        - Process spawning (headless Chrome for PDF/PPTX) must handle shell command injection, proper exit codes, and process cleanup on timeout/failure.
+        - Local preview server (watch command) must secure port bindings, dispose of listeners, and avoid memory leaks.
+        - Directory/file creation and path resolution must prevent directory traversal (e.g. resolve output paths safely).
+
+    - path: 'packages/core/src/**/*.ts'
+      instructions: |
+        Review as core slide compilation code.
+        - Base CSS and themeEngine template overrides must be clean and responsive.
+        - Math typesetting (KaTeX) rendering must handle rendering errors gracefully without crashing the compiler.
+        - HTML sanitization (sanitizeHtml/sanitizeUrl) must block script injection (javascript: URLs, inline event handlers).
+
+    - path: 'packages/parser/src/**/*.ts'
+      instructions: |
+        Review as slide Markdown parser code.
+        - Markdown AST parsing and node transformations should be deterministic.
+        - Handle invalid or malformed slide syntax gracefully, generating helpful warnings/errors instead of throwing.
+        - Handle edge cases in layout metadata parsed from markdown.
+
+    - path: 'packages/shared/src/**/*.ts'
+      instructions: |
+        Review shared packages definitions and types.
+        - Types, interfaces, and contracts must remain robust and backwards-compatible.
+        - Check for precise types rather than arbitrary any/object.
+
+    - path: 'packages/cli/tests/**/*.ts'
+      instructions: |
+        Review CLI unit tests (Vitest).
+        - Test coverage must verify success and error flows (especially parser, CLI commands, and themes).
+        - Spawning/API calls (like Chrome or server listens) should be properly mocked to keep tests fast and platform-independent.
+        - Use clean teardown to prevent side effects in the filesystem.
+
+    - path: 'cypress/**/*.ts'
+      instructions: |
+        Review E2E tests (Cypress).
+        - Check slide interaction, page navigation, fullscreen triggers, and rendering assertions.
+        - Avoid fragile selectors; prefer test-specific attributes or robust text matchers.
+
+    - path: '.github/workflows/**/*.yml'
+      instructions: |
+        Review CI/CD.
+        - Actions should use version tags, not @main.
+        - Secrets must use ${{ secrets.* }} and never be hardcoded.
+        - CI should install with pinned Bun, then run lint, typecheck, tests, and build.
+
+    - path: 'tsup.config.*'
+      instructions: |
+        Review bundle config.
+        - Entries must stay separated.
+        - Externalize dependencies correctly (Node / internal workspaces packages).
+        - Source map settings must be intentional.
+
+    - path: '**/package.json'
+      instructions: |
+        Review package-level scripts and dependencies.
+        - Ensure correct categorization (dependencies vs devDependencies).
+        - Avoid mixing imports across packages without declaring them in package dependencies.
+        - Script updates must stay compatible with Bun workspace syntax.
+
+    - path: 'tsconfig*.json'
+      instructions: |
+        Review TypeScript configs.
+        - Keep strict type safety enabled.
+        - Module, target, moduleResolution, paths, and includes must match workspaces boundaries.
+
+    - path: 'eslint.config.*'
+      instructions: |
+        Review lint config.
+        - TS/JS parsing should cover all workspace packages correctly.
+        - Avoid disabling rules that hide runtime errors or weaken type safety.
+
+  tools:
+    eslint:
+      enabled: true
+    markdownlint:
+      enabled: true
+    actionlint:
+      enabled: true
+    gitleaks:
+      enabled: true
+    htmlhint:
+      enabled: true
+    checkov:
+      enabled: true
+    languagetool:
+      enabled: true
+      enabled_rules:
+        - 'OXFORD_COMMA'
+        - 'EN_QUOTES'
+        - 'COMMA_PARENTHESIS_WHITESPACE'
+      disabled_categories:
+        - 'TYPOGRAPHY'
+    yamllint:
+      enabled: true
+    ast-grep:
+      essential_rules: true
+    biome:
+      enabled: false
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  opt_out: false
+  web_search:
+    enabled: true
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - 'README.md'
+      - 'CONTRIBUTING.md'
+      - 'SECURITY.md'
+  learnings:
+    scope: auto
