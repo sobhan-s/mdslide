@@ -16,6 +16,8 @@ describe('CLI Validate Command', () => {
   const frontmatterNonStringThemeMd = path.join(tmpDir, 'frontmatter-non-string-theme.md');
   const emptySlideMd = path.join(tmpDir, 'empty-slide.md');
   const overflowSlideMd = path.join(tmpDir, 'overflow-slide.md');
+  const overflowSplitCommentMd = path.join(tmpDir, 'overflow-split-comment.md');
+  const overflowSplitMetaMd = path.join(tmpDir, 'overflow-split-meta.md');
   const layoutWarningMd = path.join(tmpDir, 'layout-warning.md');
   const multipleLayoutsWarningMd = path.join(tmpDir, 'multiple-layouts.md');
   const unclosedNotesWarningMd = path.join(tmpDir, 'unclosed-notes.md');
@@ -45,6 +47,14 @@ describe('CLI Validate Command', () => {
     fs.writeFileSync(frontmatterNonStringThemeMd, '---\ntheme: 123\n---\n# Page One\n');
     fs.writeFileSync(emptySlideMd, '# Page One\n---\n\n---\n# Page Three\n');
     fs.writeFileSync(overflowSlideMd, '# Page One\n' + Array(35).fill('line').join('\n'));
+    fs.writeFileSync(
+      overflowSplitCommentMd,
+      '# Page One\n<!-- overflow: split -->\n' + Array(35).fill('line').join('\n')
+    );
+    fs.writeFileSync(
+      overflowSplitMetaMd,
+      '---\noverflow: split\n---\n# Page One\n' + Array(35).fill('line').join('\n')
+    );
     fs.writeFileSync(layoutWarningMd, '# Page One\n<!-- layout: nonexistent-layout -->\n');
     fs.writeFileSync(
       multipleLayoutsWarningMd,
@@ -209,5 +219,17 @@ describe('CLI Validate Command', () => {
     await validateCommand(overflowSlideMd, { logLevel: 'info' });
     const output = logSpy.mock.calls.map((c: any) => c[0]).join('\n');
     expect(output).toContain('may overflow in the browser');
+  });
+
+  test('does not warn on slide with overflow lines when comment overflow: split is used', async () => {
+    await validateCommand(overflowSplitCommentMd, { logLevel: 'info' });
+    const output = logSpy.mock.calls.map((c: any) => c[0]).join('\n');
+    expect(output).not.toContain('may overflow in the browser');
+  });
+
+  test('does not warn on slide with overflow lines when frontmatter overflow: split is used', async () => {
+    await validateCommand(overflowSplitMetaMd, { logLevel: 'info' });
+    const output = logSpy.mock.calls.map((c: any) => c[0]).join('\n');
+    expect(output).not.toContain('may overflow in the browser');
   });
 });
