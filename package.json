@@ -5,7 +5,7 @@
   "type": "module",
   "packageManager": "bun@1.2.23",
   "scripts": {
-    "build": "bun run --filter ./packages/shared build && bun run --filter ./packages/parser build && bun run --filter ./packages/core build &&bun run --filter ./packages/cli build",
+    "build": "turbo run build",
     "dev": "bun run --filter \"*\" dev",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -17,7 +17,8 @@
     "e2e:run": "start-server-and-test 'bun packages/cli/dist/cli.js watch presentation-e2e.md --port 3030' http://localhost:3030 'cypress run'",
     "e2e:open": "start-server-and-test 'bun packages/cli/dist/cli.js watch presentation-e2e.md --port 3030' http://localhost:3030 'cypress open'",
     "version": "changeset version",
-    "release": "changeset publish"
+    "release": "bun run build && changeset publish",
+    "changeset": "changeset"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.0",
@@ -33,6 +34,7 @@
     "prettier": "^3.8.1",
     "start-server-and-test": "^3.0.11",
     "tsup": "^8.5.1",
+    "turbo": "^2.9.18",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.1",
     "vitest": "^4.1.0"
