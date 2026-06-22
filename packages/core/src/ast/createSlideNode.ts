@@ -27,5 +27,6 @@ export function createSlide(partial: Partial<Slide>): Slide {
     backgroundImage: partial.backgroundImage,
     titleAlign: partial.titleAlign,
     titlePosition: partial.titlePosition,
+    overflow: partial.overflow,
   };
 }

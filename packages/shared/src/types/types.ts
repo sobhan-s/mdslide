@@ -31,6 +31,7 @@ export interface Slide {
   backgroundImage?: string;
   titleAlign?: string;
   titlePosition?: string;
+  overflow?: string;
 }
 
 export interface SlideDeck {
