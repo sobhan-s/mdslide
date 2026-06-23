@@ -28,5 +28,6 @@ export function createSlide(partial: Partial<Slide>): Slide {
     titleAlign: partial.titleAlign,
     titlePosition: partial.titlePosition,
     overflow: partial.overflow,
+    animation: partial.animation,
   };
 }

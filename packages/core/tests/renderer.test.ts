@@ -51,9 +51,15 @@ describe('Node and Children Renderer', () => {
 
     const img = createSlideNode({ type: 'image', url: 'foo.png', alt: 'bar' });
     const imgHtml = nodeToHtml(img);
-    expect(imgHtml).toContain('class="fragment"');
-    expect(imgHtml).toContain('id="frag-');
+    expect(imgHtml).not.toContain('class="fragment"');
+    expect(imgHtml).not.toContain('id="frag-');
     expect(imgHtml).toContain('src="foo.png" alt="bar"');
+
+    const imgAnimHtml = nodeToHtml(img, 'fade');
+    expect(imgAnimHtml).toContain('class="fragment"');
+    expect(imgAnimHtml).toContain('data-animation="fade"');
+    expect(imgAnimHtml).toContain('id="frag-');
+    expect(imgAnimHtml).toContain('src="foo.png" alt="bar"');
 
     const link = createSlideNode({
       type: 'link',
@@ -75,8 +81,12 @@ describe('Node and Children Renderer', () => {
       ],
     });
     const ulHtml = nodeToHtml(ul);
-    expect(ulHtml).toContain('<li class="fragment" id="frag-');
-    expect(ulHtml).toContain('">item</li>');
+    expect(ulHtml).not.toContain('<li class="fragment"');
+    expect(ulHtml).toContain('<li>item</li>');
+
+    const ulAnimHtml = nodeToHtml(ul, 'fade');
+    expect(ulAnimHtml).toContain('<li class="fragment" data-animation="fade" id="frag-');
+    expect(ulAnimHtml).toContain('">item</li>');
 
     const ol = createSlideNode({
       type: 'list',
@@ -89,8 +99,12 @@ describe('Node and Children Renderer', () => {
       ],
     });
     const olHtml = nodeToHtml(ol);
-    expect(olHtml).toContain('<li class="fragment" id="frag-');
-    expect(olHtml).toContain('">item</li>');
+    expect(olHtml).not.toContain('<li class="fragment"');
+    expect(olHtml).toContain('<li>item</li>');
+
+    const olAnimHtml = nodeToHtml(ol, 'fade');
+    expect(olAnimHtml).toContain('<li class="fragment" data-animation="fade" id="frag-');
+    expect(olAnimHtml).toContain('">item</li>');
   });
 
   test('renderCodeBlock generates styled blocks', () => {
@@ -192,8 +206,12 @@ describe('Slide and Deck Renderer', () => {
     expect(html).toContain('<div class="splitColumn textColumn">');
     expect(html).toContain('<div class="splitColumn imageColumn">');
     expect(html).toContain('src="logo.png" alt="Logo"');
-    expect(html).toContain('class="fragment"');
-    expect(html).toContain('id="frag-');
+    expect(html).not.toContain('class="fragment"');
+
+    const htmlAnim = renderSlide({ ...slide, animation: 'fade' });
+    expect(htmlAnim).toContain('class="fragment"');
+    expect(htmlAnim).toContain('data-animation="fade"');
+    expect(htmlAnim).toContain('id="frag-');
   });
 
   test('renderDeck generates complete template with scripts', () => {
@@ -252,8 +270,12 @@ describe('Slide and Deck Renderer', () => {
     });
     const rendered = nodeToHtml(node);
     expect(rendered).toContain('src="img.png" alt=""');
-    expect(rendered).toContain('class="fragment"');
-    expect(rendered).toContain('id="frag-');
+    expect(rendered).not.toContain('class="fragment"');
+
+    const renderedAnim = nodeToHtml(node, 'fade');
+    expect(renderedAnim).toContain('src="img.png" alt=""');
+    expect(renderedAnim).toContain('class="fragment"');
+    expect(renderedAnim).toContain('data-animation="fade"');
   });
 
   test('nodeToHtml handles list carrying a nested image', () => {
@@ -279,12 +301,19 @@ describe('Slide and Deck Renderer', () => {
 
     const html = nodeToHtml(listNode);
     expect(html).toContain('<ul>');
-    expect(html).toContain('class="fragment"');
-    expect(html).toContain('id="frag-');
+    expect(html).not.toContain('class="fragment"');
     expect(html).toContain('No image here</li>');
     expect(html).toContain('With image</li>');
     expect(html).toContain('<div class="inlineImageGrid">');
     expect(html).toContain('<img src="nested.png"');
+    expect(html).not.toContain('class="fragment"');
+
+    const htmlAnim = nodeToHtml(listNode, 'fade');
+    expect(htmlAnim).toContain('class="fragment" data-animation="fade"');
+    expect(htmlAnim).toContain('No image here</li>');
+    expect(htmlAnim).toContain('With image</li>');
+    expect(htmlAnim).toContain('<div class="inlineImageGrid">');
+    expect(htmlAnim).toContain('<img src="nested.png"');
   });
 
   test('nodeToHtml handles table, html and unknown nodes', () => {
@@ -356,5 +385,25 @@ describe('Slide and Deck Renderer', () => {
     const node = createSlideNode({ type: 'code', lang: 'mermaid', value: 'graph TD\nA --> B' });
     const html = nodeToHtml(node);
     expect(html).toBe('<div class="mermaid">graph TD\nA --&gt; B</div>');
+  });
+
+  test('nodeToHtml supports new animation types', () => {
+    const img = createSlideNode({ type: 'image', url: 'foo.png', alt: 'bar' });
+
+    const slideUpHtml = nodeToHtml(img, 'slide-up');
+    expect(slideUpHtml).toContain('class="fragment"');
+    expect(slideUpHtml).toContain('data-animation="slide-up"');
+
+    const zoomHtml = nodeToHtml(img, 'zoom');
+    expect(zoomHtml).toContain('class="fragment"');
+    expect(zoomHtml).toContain('data-animation="zoom"');
+
+    const slideLeftHtml = nodeToHtml(img, 'slide-left');
+    expect(slideLeftHtml).toContain('class="fragment"');
+    expect(slideLeftHtml).toContain('data-animation="slide-left"');
+
+    const slideRightHtml = nodeToHtml(img, 'slide-right');
+    expect(slideRightHtml).toContain('class="fragment"');
+    expect(slideRightHtml).toContain('data-animation="slide-right"');
   });
 });

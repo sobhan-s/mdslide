@@ -74,11 +74,11 @@ export function renderListItemText(node: SlideNode): string {
 }
 
 // node to html
-export function childrenToHtml(node: SlideNode): string {
-  return (node.children ?? []).map(nodeToHtml).join('');
+export function childrenToHtml(node: SlideNode, animation?: string): string {
+  return (node.children ?? []).map((c) => nodeToHtml(c, animation)).join('');
 }
 
-export function nodeToHtml(node: SlideNode): string {
+export function nodeToHtml(node: SlideNode, animation?: string): string {
   switch (node.type) {
     case 'paragraph': {
       // Paragraph that is purely image(s)   render as figure, not <p>
@@ -89,25 +89,25 @@ export function nodeToHtml(node: SlideNode): string {
       if (onlyImages) {
         return (node.children ?? [])
           .filter((c) => c.type === 'image')
-          .map((img) => nodeToHtml(img))
+          .map((img) => nodeToHtml(img, animation))
           .join('');
       }
-      return `<p>${childrenToHtml(node)}</p>`;
+      return `<p>${childrenToHtml(node, animation)}</p>`;
     }
 
     case 'heading': {
       const depth = node.depth ?? 3;
-      return `<h${depth}>${childrenToHtml(node)}</h${depth}>`;
+      return `<h${depth}>${childrenToHtml(node, animation)}</h${depth}>`;
     }
 
     case 'text':
       return sanitizeHtml(node.value ?? '');
 
     case 'strong':
-      return `<strong>${childrenToHtml(node)}</strong>`;
+      return `<strong>${childrenToHtml(node, animation)}</strong>`;
 
     case 'emphasis':
-      return `<em>${childrenToHtml(node)}</em>`;
+      return `<em>${childrenToHtml(node, animation)}</em>`;
 
     case 'inlineCode':
       return renderInlineCode(node);
@@ -123,7 +123,7 @@ export function nodeToHtml(node: SlideNode): string {
       const hasNestedImages = (node.children ?? []).some(listItemHasImage);
 
       if (!hasNestedImages) {
-        return `<${tag}>${childrenToHtml(node)}</${tag}>`;
+        return `<${tag}>${childrenToHtml(node, animation)}</${tag}>`;
       }
 
       // Render list items text-only, collect images
@@ -131,55 +131,67 @@ export function nodeToHtml(node: SlideNode): string {
       const itemsHtml = (node.children ?? [])
         .map((item) => {
           if (!listItemHasImage(item)) {
-            globalFragmentCounter++;
-            return `<li class="fragment" id="frag-${globalFragmentCounter}">${childrenToHtml(item)}</li>`;
+            if (animation) {
+              globalFragmentCounter++;
+              return `<li class="fragment" data-animation="${animation}" id="frag-${globalFragmentCounter}">${childrenToHtml(item, animation)}</li>`;
+            }
+            return `<li>${childrenToHtml(item, animation)}</li>`;
           }
           // Extract images from this item
           const { clean, images } = extractImages(item.children ?? []);
           collectedImages.push(...images);
-          const textContent = clean.map(nodeToHtml).join('');
-          globalFragmentCounter++;
-          return `<li class="fragment" id="frag-${globalFragmentCounter}">${textContent}</li>`;
+          const textContent = clean.map((c) => nodeToHtml(c, animation)).join('');
+          if (animation) {
+            globalFragmentCounter++;
+            return `<li class="fragment" data-animation="${animation}" id="frag-${globalFragmentCounter}">${textContent}</li>`;
+          }
+          return `<li>${textContent}</li>`;
         })
         .join('');
 
       // Render collected images in a grid below the list
       const imagesHtml =
         collectedImages.length > 0
-          ? `<div class="inlineImageGrid">${collectedImages.map(nodeToHtml).join('')}</div>`
+          ? `<div class="inlineImageGrid">${collectedImages.map((c) => nodeToHtml(c, animation)).join('')}</div>`
           : '';
 
       return `<${tag}>${itemsHtml}</${tag}>${imagesHtml}`;
     }
 
     case 'listItem': {
-      globalFragmentCounter++;
-      return `<li class="fragment" id="frag-${globalFragmentCounter}">${childrenToHtml(node)}</li>`;
+      if (animation) {
+        globalFragmentCounter++;
+        return `<li class="fragment" data-animation="${animation}" id="frag-${globalFragmentCounter}">${childrenToHtml(node, animation)}</li>`;
+      }
+      return `<li>${childrenToHtml(node, animation)}</li>`;
     }
 
     case 'blockquote':
-      return `<blockquote>${childrenToHtml(node)}</blockquote>`;
+      return `<blockquote>${childrenToHtml(node, animation)}</blockquote>`;
 
     case 'image': {
       const src = node.url ?? node.value ?? '';
       const alt = node.alt ?? '';
-      globalFragmentCounter++;
-      return `<img src="${sanitizeUrl(src, true)}" alt="${sanitizeHtml(alt)}" class="fragment" id="frag-${globalFragmentCounter}" loading="lazy" />`;
+      if (animation) {
+        globalFragmentCounter++;
+        return `<img src="${sanitizeUrl(src, true)}" alt="${sanitizeHtml(alt)}" class="fragment" data-animation="${animation}" id="frag-${globalFragmentCounter}" loading="lazy" />`;
+      }
+      return `<img src="${sanitizeUrl(src, true)}" alt="${sanitizeHtml(alt)}" loading="lazy" />`;
     }
 
     case 'link': {
       const href = node.url ?? node.value ?? '';
-      return `<a href="${sanitizeUrl(href, false)}">${childrenToHtml(node)}</a>`;
+      return `<a href="${sanitizeUrl(href, false)}">${childrenToHtml(node, animation)}</a>`;
     }
 
     case 'table':
-      return renderTable(node, childrenToHtml);
+      return renderTable(node, (n) => childrenToHtml(n, animation));
 
     case 'tableRow':
-      return renderTableRow(node, childrenToHtml);
+      return renderTableRow(node, (n) => childrenToHtml(n, animation));
 
     case 'tableCell':
-      return renderTableCell(node, childrenToHtml);
+      return renderTableCell(node, (n) => childrenToHtml(n, animation));
 
     case 'break':
       return '<br />';
@@ -195,11 +207,11 @@ export function nodeToHtml(node: SlideNode): string {
       return `<span class="math mathInline">${renderMath(node.value ?? '', false)}</span>`;
 
     case 'column':
-      return childrenToHtml(node);
+      return childrenToHtml(node, animation);
 
     default:
       if (node.value) return sanitizeHtml(node.value);
-      if (node.children?.length) return childrenToHtml(node);
+      if (node.children?.length) return childrenToHtml(node, animation);
       return '';
   }
 }
@@ -261,8 +273,8 @@ export function renderSlide(slide: Slide): string {
       // Manual ::split::
       contentHtml = `
         <div class="splitLayout">
-          <div class="splitColumn textColumn">${nodeToHtml(slide.content[0]!)}</div>
-          <div class="splitColumn rightColumn">${nodeToHtml(slide.content[1]!)}</div>
+          <div class="splitColumn textColumn">${nodeToHtml(slide.content[0]!, slide.animation)}</div>
+          <div class="splitColumn rightColumn">${nodeToHtml(slide.content[1]!, slide.animation)}</div>
         </div>`;
     } else {
       // Auto-split: only do text+image split when there is EXACTLY one image
@@ -272,16 +284,16 @@ export function renderSlide(slide: Slide): string {
         const textNodes = removeImageNode(slide.content);
         contentHtml = `
           <div class="splitLayout">
-            <div class="splitColumn textColumn">${textNodes.map(nodeToHtml).join('\n')}</div>
-            <div class="splitColumn imageColumn">${nodeToHtml(imageNode!)}</div>
+            <div class="splitColumn textColumn">${textNodes.map((n) => nodeToHtml(n, slide.animation)).join('\n')}</div>
+            <div class="splitColumn imageColumn">${nodeToHtml(imageNode!, slide.animation)}</div>
           </div>`;
       } else {
         // 0 or 2+ images   render normally, let the list handler show images in a grid
-        contentHtml = slide.content.map(nodeToHtml).join('\n');
+        contentHtml = slide.content.map((n) => nodeToHtml(n, slide.animation)).join('\n');
       }
     }
   } else {
-    contentHtml = slide.content.map(nodeToHtml).join('\n');
+    contentHtml = slide.content.map((n) => nodeToHtml(n, slide.animation)).join('\n');
   }
 
   let bgAttr = '';
@@ -300,8 +312,12 @@ export function renderSlide(slide: Slide): string {
   if (slide.titlePosition) {
     posAttr = ` data-title-position="${sanitizeHtml(slide.titlePosition)}"`;
   }
+  let animAttr = '';
+  if (slide.animation) {
+    animAttr = ` data-animation="${sanitizeHtml(slide.animation)}"`;
+  }
 
-  return `<section class="slide"${bgAttr}${bgStyle}${alignAttr}${posAttr} data-type="${slide.type}" data-id="${slide.id}">
+  return `<section class="slide"${bgAttr}${bgStyle}${alignAttr}${posAttr}${animAttr} data-type="${slide.type}" data-id="${slide.id}">
   ${titleHtml}
   <div class="slideContent">
     ${contentHtml}

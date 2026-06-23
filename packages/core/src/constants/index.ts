@@ -46,3 +46,5 @@ export const SUPPORTED_LANGS = [
 export const DEFAULT_TITLE = 'Presentation';
 
 export const DEFAULT_THEME = 'light';
+
+export const VALID_ANIMATIONS = new Set(['fade', 'slide-up', 'zoom', 'slide-left', 'slide-right']);

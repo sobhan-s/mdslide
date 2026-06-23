@@ -6,6 +6,8 @@ import {
   parseBackgroundImage,
   parseTitlePositioning,
   parseOverflowConfig,
+  parseAnimationConfig,
+  normalizeAnimation,
 } from '../src/normalizer/normalizeLayout.ts';
 import { extractSlideNotes } from '../src/normalizer/normalizeNote.ts';
 import {
@@ -88,6 +90,44 @@ describe('Normalize Layout', () => {
     expect(overflow).toBe('split');
     expect(filteredNodes).toHaveLength(1);
     expect(filteredNodes[0].type).toBe('paragraph');
+  });
+
+  test('parseAnimationConfig extracts animation comments and filters nodes', () => {
+    const nodes1: RootContent[] = [
+      { type: 'html', value: '<!-- animation: fade -->' },
+      { type: 'paragraph', children: [{ type: 'text', value: 'Hello' }] },
+    ];
+    const { animation: anim1, filteredNodes: filtered1 } = parseAnimationConfig(nodes1);
+    expect(anim1).toBe('fade');
+    expect(filtered1).toHaveLength(1);
+
+    const nodes2: RootContent[] = [
+      { type: 'html', value: '<!-- build: fade -->' },
+      { type: 'paragraph', children: [{ type: 'text', value: 'Hello' }] },
+    ];
+    const { animation: anim2, filteredNodes: filtered2 } = parseAnimationConfig(nodes2);
+    expect(anim2).toBe('fade');
+    expect(filtered2).toHaveLength(1);
+
+    const nodes3: RootContent[] = [
+      { type: 'html', value: '<!-- animation: slide-up -->' },
+      { type: 'paragraph', children: [{ type: 'text', value: 'Hello' }] },
+    ];
+    const { animation: anim3, filteredNodes: filtered3 } = parseAnimationConfig(nodes3);
+    expect(anim3).toBe('slide-up');
+    expect(filtered3).toHaveLength(1);
+  });
+
+  test('normalizeAnimation maps values to standard animation strings', () => {
+    expect(normalizeAnimation('fade')).toBe('fade');
+    expect(normalizeAnimation('true')).toBe('fade');
+    expect(normalizeAnimation('FADE')).toBe('fade');
+    expect(normalizeAnimation('slide-up')).toBe('slide-up');
+    expect(normalizeAnimation('zoom')).toBe('zoom');
+    expect(normalizeAnimation('slide-left')).toBe('slide-left');
+    expect(normalizeAnimation('slide-right')).toBe('slide-right');
+    expect(normalizeAnimation('invalid')).toBeUndefined();
+    expect(normalizeAnimation(undefined)).toBeUndefined();
   });
 
   test('resolveSlideLayout returns custom layout if layoutOverride is valid', () => {

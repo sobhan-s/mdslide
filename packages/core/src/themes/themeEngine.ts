@@ -429,11 +429,43 @@ body .slide[data-title-position="middle"] .slideContent {
 /* Fragments */
 .fragment {
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .fragment.visible {
   opacity: 1;
+}
+
+/* Slide Up */
+.fragment[data-animation="slide-up"] {
+  transform: translateY(20px);
+}
+.fragment[data-animation="slide-up"].visible {
+  transform: translateY(0);
+}
+
+/* Zoom */
+.fragment[data-animation="zoom"] {
+  transform: scale(0.92);
+}
+.fragment[data-animation="zoom"].visible {
+  transform: scale(1);
+}
+
+/* Slide Left */
+.fragment[data-animation="slide-left"] {
+  transform: translateX(-20px);
+}
+.fragment[data-animation="slide-left"].visible {
+  transform: translateX(0);
+}
+
+/* Slide Right */
+.fragment[data-animation="slide-right"] {
+  transform: translateX(20px);
+}
+.fragment[data-animation="slide-right"].visible {
+  transform: translateX(0);
 }
 
 /* Progress bar */

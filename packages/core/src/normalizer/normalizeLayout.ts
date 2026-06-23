@@ -1,5 +1,5 @@
 import { RootContent } from 'mdast';
-import { VALID_SLIDE_TYPES } from '../constants/index.js';
+import { VALID_ANIMATIONS, VALID_SLIDE_TYPES } from '../constants/index.js';
 import { SlideNode, SlideType } from '@mindfiredigital/mdslide-shared';
 
 // Detects manual layout override comments e.g., <!-- layout: dark --> and clear out
@@ -115,6 +115,42 @@ export function parseOverflowConfig(nodes: RootContent[]): {
   }
   return {
     overflow,
+    filteredNodes,
+  };
+}
+
+export function normalizeAnimation(val: unknown): string | undefined {
+  if (!val) return undefined;
+  const str = String(val).toLowerCase().trim();
+  if (str === 'true') {
+    return 'fade';
+  }
+  if (VALID_ANIMATIONS.has(str)) {
+    return str;
+  }
+  return undefined;
+}
+
+export function parseAnimationConfig(nodes: RootContent[]): {
+  animation: string | undefined;
+  filteredNodes: RootContent[];
+} {
+  let animation: string | undefined;
+  const filteredNodes: RootContent[] = [];
+
+  for (const node of nodes) {
+    if (node.type === 'html') {
+      const val = node.value.trim();
+      const animMatch = val.match(/^<!--\s*(animation|build):\s*([\w-]+)\s*-->$/i);
+      if (animMatch) {
+        animation = normalizeAnimation(animMatch[2]);
+        continue;
+      }
+    }
+    filteredNodes.push(node);
+  }
+  return {
+    animation,
     filteredNodes,
   };
 }

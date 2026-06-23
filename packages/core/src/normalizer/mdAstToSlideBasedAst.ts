@@ -11,6 +11,8 @@ import {
   parseBackgroundImage,
   parseTitlePositioning,
   parseOverflowConfig,
+  parseAnimationConfig,
+  normalizeAnimation,
 } from './normalizeLayout.js';
 
 // Converts generic MDAST node into Slide AST Node
@@ -66,10 +68,14 @@ export function normalizeSlide(rawBlock: RawSlideBlock): Slide {
 
   const { overflow, filteredNodes: nodesWithoutOverflow } = parseOverflowConfig(nodesWithoutPos);
 
+  const { animation: parsedAnim, filteredNodes: nodesWithoutAnim } =
+    parseAnimationConfig(nodesWithoutOverflow);
+  const animation = normalizeAnimation(parsedAnim);
+
   let slideTitle: string | undefined;
   const slideContent: SlideNode[] = [];
 
-  for (const node of nodesWithoutOverflow) {
+  for (const node of nodesWithoutAnim) {
     if (isHeading(node)) {
       const headingNode = node as Heading;
       const normalized = normalizeHeading(headingNode);
@@ -105,6 +111,7 @@ export function normalizeSlide(rawBlock: RawSlideBlock): Slide {
     titleAlign,
     titlePosition,
     overflow,
+    animation,
   });
 }
 
@@ -134,6 +141,10 @@ export function normalizeSlides(
         const overflow = meta.overflow;
         if (overflow && !slide.overflow) {
           slide.overflow = String(overflow).toLowerCase();
+        }
+        const animVal = meta.animation ?? meta.build;
+        if (animVal && !slide.animation) {
+          slide.animation = normalizeAnimation(animVal);
         }
       }
       return slide;
