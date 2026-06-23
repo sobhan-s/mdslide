@@ -468,6 +468,52 @@ body .slide[data-title-position="middle"] .slideContent {
   transform: translateX(0);
 }
 
+/* Font size controls */
+.slide[data-font-size="xs"] {
+  --title-size: 2.04rem;
+  --h2-size: 1.82rem;
+  --h3-size: 1.26rem;
+  --body-size: 0.95rem;
+  --li-size: 0.91rem;
+  --code-size: 0.74rem;
+}
+
+.slide[data-font-size="sm"] {
+  --title-size: 2.72rem;
+  --h2-size: 2.21rem;
+  --h3-size: 1.53rem;
+  --body-size: 1.15rem;
+  --li-size: 1.11rem;
+  --code-size: 0.89rem;
+}
+
+.slide[data-font-size="lg"] {
+  --title-size: 4.25rem;
+  --h2-size: 3.00rem;
+  --h3-size: 2.10rem;
+  --body-size: 1.55rem;
+  --li-size: 1.50rem;
+  --code-size: 1.20rem;
+}
+
+.slide[data-font-size="xl"] {
+  --title-size: 5.10rem;
+  --h2-size: 3.25rem;
+  --h3-size: 2.25rem;
+  --body-size: 1.69rem;
+  --li-size: 1.63rem;
+  --code-size: 1.31rem;
+}
+
+.slide[data-font-size="xxl"] {
+  --title-size: 6.12rem;
+  --h2-size: 3.51rem;
+  --h3-size: 2.43rem;
+  --body-size: 1.82rem;
+  --li-size: 1.76rem;
+  --code-size: 1.42rem;
+}
+
 /* Progress bar */
 .progressBarContainer {
   position: fixed;
