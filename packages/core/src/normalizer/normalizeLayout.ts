@@ -1,5 +1,5 @@
 import { RootContent } from 'mdast';
-import { VALID_ANIMATIONS, VALID_SLIDE_TYPES } from '../constants/index.js';
+import { VALID_ANIMATIONS, VALID_FONT_SIZES, VALID_SLIDE_TYPES } from '../constants/index.js';
 import { SlideNode, SlideType } from '@mindfiredigital/mdslide-shared';
 
 // Detects manual layout override comments e.g., <!-- layout: dark --> and clear out
@@ -151,6 +151,54 @@ export function parseAnimationConfig(nodes: RootContent[]): {
   }
   return {
     animation,
+    filteredNodes,
+  };
+}
+
+export function normalizeFontSize(val: unknown): string | undefined {
+  if (!val) return undefined;
+  const str = String(val)
+    .toLowerCase()
+    .trim()
+    .replace(/[-\s_]+/g, '-');
+  if (str === 'medium' || str === 'normal') {
+    return 'md';
+  }
+  if (str === 'extra-large') {
+    return 'xl';
+  }
+  if (str === 'extra-small') {
+    return 'xs';
+  }
+  if (str === 'double-extra-large') {
+    return 'xxl';
+  }
+  if (VALID_FONT_SIZES.has(str)) {
+    return str;
+  }
+  return undefined;
+}
+
+export function parseFontSizeConfig(nodes: RootContent[]): {
+  fontSize: string | undefined;
+  filteredNodes: RootContent[];
+} {
+  let fontSize: string | undefined;
+  const filteredNodes: RootContent[] = [];
+
+  for (const node of nodes) {
+    if (node.type === 'html') {
+      const val = node.value.trim();
+      const match = val.match(/^<!--\s*(fontSize):\s*([\w\s-]+)\s*-->$/i);
+      if (match) {
+        fontSize = normalizeFontSize(match[2]);
+        continue;
+      }
+    }
+    filteredNodes.push(node);
+  }
+  return {
+    fontSize,
     filteredNodes,
   };
 }

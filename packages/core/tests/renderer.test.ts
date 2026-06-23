@@ -406,4 +406,17 @@ describe('Slide and Deck Renderer', () => {
     expect(slideRightHtml).toContain('class="fragment"');
     expect(slideRightHtml).toContain('data-animation="slide-right"');
   });
+
+  test('renderSlide supports custom fontSize attributes', () => {
+    const slide = createSlide({
+      id: 'slide-font-size',
+      type: 'content',
+      fontSize: 'sm',
+      content: [
+        createSlideNode({ type: 'paragraph', children: [{ type: 'text', value: 'Hello sm' }] }),
+      ],
+    });
+    const html = renderSlide(slide);
+    expect(html).toContain('data-font-size="sm"');
+  });
 });

@@ -316,8 +316,12 @@ export function renderSlide(slide: Slide): string {
   if (slide.animation) {
     animAttr = ` data-animation="${sanitizeHtml(slide.animation)}"`;
   }
+  let fontSizeAttr = '';
+  if (slide.fontSize) {
+    fontSizeAttr = ` data-font-size="${sanitizeHtml(slide.fontSize)}"`;
+  }
 
-  return `<section class="slide"${bgAttr}${bgStyle}${alignAttr}${posAttr}${animAttr} data-type="${slide.type}" data-id="${slide.id}">
+  return `<section class="slide"${bgAttr}${bgStyle}${alignAttr}${posAttr}${animAttr}${fontSizeAttr} data-type="${slide.type}" data-id="${slide.id}">
   ${titleHtml}
   <div class="slideContent">
     ${contentHtml}
