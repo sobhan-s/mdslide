@@ -8,6 +8,8 @@ import {
   parseOverflowConfig,
   parseAnimationConfig,
   normalizeAnimation,
+  parseFontSizeConfig,
+  normalizeFontSize,
 } from '../src/normalizer/normalizeLayout.ts';
 import { extractSlideNotes } from '../src/normalizer/normalizeNote.ts';
 import {
@@ -128,6 +130,27 @@ describe('Normalize Layout', () => {
     expect(normalizeAnimation('slide-right')).toBe('slide-right');
     expect(normalizeAnimation('invalid')).toBeUndefined();
     expect(normalizeAnimation(undefined)).toBeUndefined();
+  });
+
+  test('parseFontSizeConfig extracts font size comments and filters nodes', () => {
+    const nodes: RootContent[] = [
+      { type: 'html', value: '<!-- fontSize: sm -->' },
+      { type: 'paragraph', children: [{ type: 'text', value: 'Hello' }] },
+    ];
+    const { fontSize, filteredNodes } = parseFontSizeConfig(nodes);
+    expect(fontSize).toBe('sm');
+    expect(filteredNodes).toHaveLength(1);
+    expect(filteredNodes[0].type).toBe('paragraph');
+  });
+
+  test('normalizeFontSize maps values to standard size strings', () => {
+    expect(normalizeFontSize('xs')).toBe('xs');
+    expect(normalizeFontSize('extra-large')).toBe('xl');
+    expect(normalizeFontSize('extra large')).toBe('xl');
+    expect(normalizeFontSize('xxl')).toBe('xxl');
+    expect(normalizeFontSize('medium')).toBe('md');
+    expect(normalizeFontSize('normal')).toBe('md');
+    expect(normalizeFontSize('invalid')).toBeUndefined();
   });
 
   test('resolveSlideLayout returns custom layout if layoutOverride is valid', () => {
