@@ -33,6 +33,7 @@ export interface Slide {
   titlePosition?: string;
   overflow?: string;
   animation?: string;
+  fontSize?: string;
 }
 
 export interface SlideDeck {
