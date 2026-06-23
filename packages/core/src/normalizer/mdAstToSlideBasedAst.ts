@@ -13,6 +13,8 @@ import {
   parseOverflowConfig,
   parseAnimationConfig,
   normalizeAnimation,
+  parseFontSizeConfig,
+  normalizeFontSize,
 } from './normalizeLayout.js';
 
 // Converts generic MDAST node into Slide AST Node
@@ -72,10 +74,14 @@ export function normalizeSlide(rawBlock: RawSlideBlock): Slide {
     parseAnimationConfig(nodesWithoutOverflow);
   const animation = normalizeAnimation(parsedAnim);
 
+  const { fontSize: parsedFontSize, filteredNodes: nodesWithoutFontSize } =
+    parseFontSizeConfig(nodesWithoutAnim);
+  const fontSize = normalizeFontSize(parsedFontSize);
+
   let slideTitle: string | undefined;
   const slideContent: SlideNode[] = [];
 
-  for (const node of nodesWithoutAnim) {
+  for (const node of nodesWithoutFontSize) {
     if (isHeading(node)) {
       const headingNode = node as Heading;
       const normalized = normalizeHeading(headingNode);
@@ -112,6 +118,7 @@ export function normalizeSlide(rawBlock: RawSlideBlock): Slide {
     titlePosition,
     overflow,
     animation,
+    fontSize,
   });
 }
 
@@ -145,6 +152,10 @@ export function normalizeSlides(
         const animVal = meta.animation ?? meta.build;
         if (animVal && !slide.animation) {
           slide.animation = normalizeAnimation(animVal);
+        }
+        const fontSizeVal = meta.fontSize ?? meta['font-size'] ?? meta.font_size;
+        if (fontSizeVal && !slide.fontSize) {
+          slide.fontSize = normalizeFontSize(fontSizeVal);
         }
       }
       return slide;
