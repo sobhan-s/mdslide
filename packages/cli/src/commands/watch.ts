@@ -39,16 +39,22 @@ export async function watchCommand(inputFile: string, opts: WatchOptions): Promi
   const log = new Logger(opts.logLevel ?? 'info');
   const absInput = path.resolve(inputFile);
 
-  if (!fs.existsSync(absInput)) {
-    log.error(new InputNotFoundError(absInput));
-    process.exit(1);
+  try {
+    await fs.promises.access(absInput);
+  } catch {
+    const err = new InputNotFoundError(absInput);
+    log.error(err);
+    throw err;
   }
 
   const preferredPort = opts.port ?? WATCH_CONFIG.PORT;
-  const port = await findPort(preferredPort).catch((err) => {
+  let port: number;
+  try {
+    port = await findPort(preferredPort);
+  } catch (err) {
     log.error(err);
-    process.exit(1);
-  });
+    throw err;
+  }
 
   let cachedHtml = '';
   const clients: http.ServerResponse[] = [];
@@ -63,7 +69,7 @@ export async function watchCommand(inputFile: string, opts: WatchOptions): Promi
   } catch (err) {
     spinner.fail(WATCH_MESSAGES.SPINNER_FAIL);
     log.error(err);
-    process.exit(1);
+    throw err;
   }
 
   const liveReloadHandler = (req: http.IncomingMessage, res: http.ServerResponse) => {
