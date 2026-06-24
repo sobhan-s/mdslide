@@ -3,7 +3,7 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import http from 'http';
-import { spawn, execFileSync } from 'child_process';
+import { spawn, execFileSync, execFile } from 'child_process';
 import { EventEmitter } from 'events';
 import { findChromeBinary, exportToPdf, compileToPdf } from '../src/exports/pdfExports.ts';
 import { compileToScreenshotPptx } from '../src/exports/pptxScreenshotExporter.ts';
@@ -17,6 +17,7 @@ vi.mock('child_process', async () => {
     ...actual,
     spawn: vi.fn(),
     execFileSync: vi.fn(),
+    execFile: vi.fn(),
   };
 });
 
@@ -78,6 +79,18 @@ describe('CLI Exporter Modules', () => {
       throw new Error('command not found');
     });
 
+    vi.mocked(execFile).mockImplementation((file, args, callback) => {
+      const cb = typeof args === 'function' ? (args as any) : (callback as any);
+      if (cb) {
+        if (mockExecFileSyncSuccess) {
+          cb(null, 'Google Chrome 120.0.0.0', '');
+        } else {
+          cb(new Error('command not found'), '', '');
+        }
+      }
+      return {} as any;
+    });
+
     // Set up spawn mock behavior
     vi.mocked(spawn).mockImplementation((cmd, args, options) => {
       const url = args ? args[args.length - 1] : '';
@@ -137,15 +150,15 @@ describe('CLI Exporter Modules', () => {
   });
 
   describe('PDF Exporter (pdfExports.ts)', () => {
-    test('findChromeBinary returns first succeeding candidate path', () => {
-      const bin = findChromeBinary();
+    test('findChromeBinary returns first succeeding candidate path', async () => {
+      const bin = await findChromeBinary();
       expect(bin).not.toBeNull();
       expect(typeof bin).toBe('string');
     });
 
-    test('findChromeBinary returns null if all candidate paths fail', () => {
+    test('findChromeBinary returns null if all candidate paths fail', async () => {
       mockExecFileSyncSuccess = false;
-      const bin = findChromeBinary();
+      const bin = await findChromeBinary();
       expect(bin).toBeNull();
     });
 
