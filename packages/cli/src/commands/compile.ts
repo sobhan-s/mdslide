@@ -34,7 +34,11 @@ export async function runCompile(
   log: Logger,
   options?: { injectReload?: boolean }
 ): Promise<{ html: string; slideCount: number; warnings: string[]; slides: any[]; meta: any }> {
-  if (!fs.existsSync(inputFile)) throw new InputNotFoundError(inputFile);
+  try {
+    await fs.promises.access(inputFile);
+  } catch {
+    throw new InputNotFoundError(inputFile);
+  }
 
   let Compiler: any;
   try {
@@ -44,7 +48,7 @@ export async function runCompile(
     throw new CompileError(COMPILE_MESSAGES.CORE_NOT_FOUND, {});
   }
 
-  const markdown = fs.readFileSync(inputFile, 'utf8');
+  const markdown = await fs.promises.readFile(inputFile, 'utf8');
   let result: any;
 
   try {
@@ -98,8 +102,8 @@ export async function compileCommand(inputFile: string, opts: CompileOptions): P
 
   try {
     if (format === 'html') {
-      fs.mkdirSync(path.dirname(absOutput), { recursive: true });
-      fs.writeFileSync(absOutput, html);
+      await fs.promises.mkdir(path.dirname(absOutput), { recursive: true });
+      await fs.promises.writeFile(absOutput, html);
     } else if (format === 'pdf') {
       spinner.update('Launching Chrome for PDF export...');
       await compileToPdf(html, absOutput, {
@@ -110,7 +114,7 @@ export async function compileCommand(inputFile: string, opts: CompileOptions): P
     } else if (format === 'pptx') {
       const pptxMode = opts.pptxMode ?? 'screenshot';
       spinner.update(`Building PPTX (${pptxMode} mode)...`);
-      fs.mkdirSync(path.dirname(absOutput), { recursive: true });
+      await fs.promises.mkdir(path.dirname(absOutput), { recursive: true });
       if (pptxMode === 'editable') {
         await compileToEditablePptx(deck, absOutput, {
           theme: opts.theme,
