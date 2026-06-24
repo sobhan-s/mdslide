@@ -1,0 +1,49 @@
+{
+  "name": "@mindfiredigital/mdslide-cli",
+  "version": "1.0.0",
+  "description": "CLI for mdslide - Markdown presentation compiler",
+  "type": "module",
+  "bin": {
+    "mdslide": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@mindfiredigital/mdslide-core": "workspace:*",
+    "@mindfiredigital/mdslide-shared": "workspace:*",
+    "cac": "^7.0.0",
+    "chokidar": "^5.0.0",
+    "open": "^10.0.0",
+    "pptxgenjs": "^4.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "mdslide",
+    "markdown",
+    "presentation",
+    "slides",
+    "cli"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "tsup": "^8.5.1"
+  }
+}

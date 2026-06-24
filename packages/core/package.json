@@ -1,0 +1,36 @@
+{
+  "name": "@mindfiredigital/mdslide-core",
+  "version": "0.0.1",
+  "private": false,
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@mindfiredigital/mdslide-parser": "workspace:*",
+    "@mindfiredigital/mdslide-shared": "workspace:*",
+    "gray-matter": "^4.0.3",
+    "katex": "^0.16.9",
+    "mdast-util-to-string": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/katex": "^0.16.7",
+    "@types/mdast": "^4.0.4",
+    "@types/node": "^25.6.0",
+    "tsup": "^8.0.0"
+  }
+}
