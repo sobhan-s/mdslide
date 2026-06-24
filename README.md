@@ -1,68 +1,12 @@
 # mdslide
 
-`mdslide` is a modular, high-performance monorepo compiler and presentation tool that converts Markdown documents into gorgeous interactive slide decks in HTML, PDF, or editable/screenshot PPTX formats.
+`mdslide` is a modular, high-performance compiler and presentation tool that converts Markdown documents into gorgeous interactive slide decks in HTML, PDF, or PowerPoint (PPTX) formats.
 
 ---
 
-## 📦 Project Structure
+## Installation
 
-The project is structured as a monorepo containing the following workspaces under the `packages/` directory:
-
-- **[`@mindfiredigital/mdslide-cli` (packages/cli)](/mdslide/packages/cli)**: Command line interface for compiling, watching, linting, and interactive wizard generation.
-- **[`@mindfiredigital/mdslide-core` (packages/core)](/mdslide/packages/core)**: The core compilation engine, slide normalizer, overflow splitted parser, and HTML/PDF/PPTX output renderers.
-- **[`@mindfiredigital/mdslide-parser` (packages/parser)](/mdslide/packages/parser)**: Standalone markdown parser producing MDAST JSON format, exposing programmatic defaults (with position coordinates cleaning option) and a standalone CLI.
-- **[`@mindfiredigital/mdslide-shared` (packages/shared)](/mdslide/packages/shared)**: Shared common utility functions, helpers, and TypeScript types.
-
----
-
-## 🛠 Getting Started
-
-### Prerequisites
-
-- [Bun](https://bun.sh) (v1.x or higher) installed on your system.
-
-### Installation
-
-Clone the repository and install dependencies at the root:
-
-```bash
-bun install
-```
-
-### Local Development Commands
-
-Run the following scripts from the root directory:
-
-- **Build all packages**:
-  ```bash
-  bun run build
-  ```
-- **Start development / watch mode**:
-  ```bash
-  bun run dev
-  ```
-- **Format codebase**:
-  ```bash
-  bun run format
-  ```
-- **Lint codebase**:
-  ```bash
-  bun run lint
-  ```
-- **Run tests**:
-  ```bash
-  bun run test
-  ```
-- **Run test coverage**:
-  ```bash
-  bun run test:coverage
-  ```
-
----
-
-## 🚀 Using the CLI (Quick Start)
-
-To install and use `mdslide` globally:
+Install the CLI globally using your preferred package manager:
 
 ```bash
 npm install -g @mindfiredigital/mdslide-cli
@@ -70,21 +14,25 @@ npm install -g @mindfiredigital/mdslide-cli
 bun add -g @mindfiredigital/mdslide-cli
 ```
 
-### Core Commands
+---
 
-- **Interactive Prompt Wizard**: Run a guided walkthrough to choose options.
+## Using the CLI (Quick Start)
+
+Once installed, you can use the `mdslide` command to compile and preview presentations:
+
+- **Interactive Wizard**: Launches a guided prompt to choose themes, formats, and outputs.
   ```bash
   mdslide slides.md
   ```
-- **Compile Presentations**: Build standard output formats.
+- **Compile Slides**: Build a static presentation file.
   ```bash
   mdslide compile slides.md --theme gradient --open
   ```
-- **Hot-Reload Live Server**: Start a dev server that refreshes your browser automatically on save.
+- **Live Watch Server**: Starts a local development server with hot-reloading on file save.
   ```bash
   mdslide watch slides.md --port 3500 --open
   ```
-- **Initialize Templates**: Scaffold a sample presentation and configuration file in your directory.
+- **Initialize Template**: Scaffold a sample presentation and configuration file.
   ```bash
   mdslide init
   ```
@@ -95,31 +43,89 @@ bun add -g @mindfiredigital/mdslide-cli
 
 ---
 
-## ✍️ Presentation Syntax & Authoring Guide
+## Exporting Presentations (PDF & PPTX)
 
-`mdslide` compiles standard Markdown files. You control structure using YAML frontmatter, slide dividers (`---`), and layout comment annotations.
+`mdslide` compiles your presentation directly to offline document formats via CLI arguments.
 
-### 1. Global Document Configurations (YAML Frontmatter)
+### **1. PDF Export**
 
-Declare document metadata at the very top of your file between `---` bounds:
+Compiles the slide deck to a standard presentation PDF document using a headless browser to print the slides to a PDF file:
+
+```bash
+mdslide compile slides.md -o presentation.pdf
+# or explicitly specifying the format
+mdslide compile slides.md --format pdf
+```
+
+### **2. PowerPoint (PPTX) Export**
+
+`mdslide` offers two modes for generating PowerPoint slides:
+
+- **Screenshot Mode (Default / Pixel-Perfect)**:
+  Runs a headless browser in the background to capture a high-resolution snapshot of each HTML slide and inserts them as images into your PPTX deck. This preserves all theme styling, colors, custom fonts, layouts, and custom CSS exactly as they appear in the web browser.
+
+  ```bash
+  mdslide compile slides.md -o presentation.pptx --pptx-mode screenshot
+  ```
+
+- **Editable Mode (Native PowerPoint Elements)**:
+  Uses the native presentation generator to map Markdown headings, lists, tables, and code blocks to native, editable PowerPoint shapes and text boxes. This allows you to open the deck in PowerPoint or Google Slides and directly edit text, move cards, or resize elements.
+  ```bash
+  mdslide compile slides.md -o presentation.pptx --pptx-mode editable
+  ```
+
+---
+
+## Presentation Syntax & Feature Customizations
+
+`mdslide` compiles standard Markdown files. You control structure, layout, typography, animations, and overflow behaviors using YAML frontmatter (for global defaults) and HTML comment annotations (for slide-specific overrides).
+
+### 1. Settings Inheritance & Overrides
+
+Settings can be defined both globally and locally:
+
+- **Global Defaults**: Defined at the very top of your presentation file using YAML frontmatter. These settings apply to all slides.
+- **Slide-Specific Overrides**: Declared inside individual slides using HTML comment annotations. When a slide-specific setting is present, it **overrides the global default** for that slide only.
+
+#### **Settings Reference Table**
+
+| Property / Feature     | Frontmatter Key (Global) | Comment Override (Slide-Specific)                     | Allowed Values                                                              | Description                                                    |
+| :--------------------- | :----------------------- | :---------------------------------------------------- | :-------------------------------------------------------------------------- | :------------------------------------------------------------- |
+| **Theme**              | `theme`                  | _N/A (Global only)_                                   | `light`, `dark`, `notion`, `terminal`, `gradient`, `corporate`, `solarized` | Overall aesthetic theme styling and color scheme.              |
+| **Title Alignment**    | `titleAlign`             | `<!-- titleAlign: value -->`                          | `left`, `center`, `right`                                                   | Horizontal alignment for the slide title.                      |
+| **Title Position**     | `titlePosition`          | `<!-- titlePosition: value -->`                       | `top`, `center`, `bottom`                                                   | Vertical positioning for the slide title.                      |
+| **Bullet Animation**   | `animation` / `build`    | `<!-- animation: value -->` / `<!-- build: value -->` | `fade`, `slide-up`, `slide-left`, `slide-right`, `zoom`                     | Step-by-step reveal animation for list items and images.       |
+| **Overflow Splitting** | `overflow`               | `<!-- overflow: value -->`                            | `split`, `none`                                                             | Enables or disables the visual overflow auto-splitting engine. |
+
+---
+
+### 2. Frontmatter Example (Global Defaults)
+
+Configure global presentation defaults at the very top of your file between `---` boundaries:
 
 ```yaml
 ---
 title: My Executive Presentation
-theme: gradient # light | dark | notion | terminal | gradient | corporate | solarized
-titleAlign: center # Default title alignment across all slides: left | center | right
-titlePosition: top # Default title vertical position: top | center | bottom
+theme: gradient
+titleAlign: center
+titlePosition: top
+animation: slide-up
+overflow: split
 ---
 ```
 
-### 2. Slide Separation
+---
 
-- Slides are separated by thematic breaks (`---`) on empty lines.
-- Alternatively, if no `---` breaks are present, the compiler automatically splits slides at each Level-2 Heading (`##`).
+### 3. Slide Separation
 
-### 3. Slide-Level Customizations & Comments
+- **Explicit Dividers**: Slides are separated by three dashes (`---`) on empty lines.
+- **Auto-Separation**: If no dividers are present, the compiler automatically starts a new slide at each Level-2 Heading (`##`).
 
-You can override layouts, alignments, backgrounds, and notes on a per-slide basis using annotations:
+---
+
+### 4. Slide-Level Customizations & Annotations
+
+You can override layouts, alignments, animations, background styling, and notes on a per-slide basis using standard HTML comment annotations:
 
 #### **Layout Overrides**
 
@@ -136,64 +142,210 @@ Force layout styling for a specific slide:
 
 #### **Slide Title Positioning & Alignment**
 
-- `<!-- titleAlign: center -->` — Align title text for this slide (`left`, `center`, or `right`).
-- `<!-- titlePosition: bottom -->` — Vertically position this slide's title (`top`, `center`, or `bottom`).
+- `<!-- titleAlign: center -->` — Horizontal alignment for this slide's title (`left`, `center`, or `right`).
+- `<!-- titlePosition: bottom -->` — Vertical position for this slide's title (`top`, `center`, or `bottom`).
+
+#### **Bullet Reveal Animations**
+
+Make lists, images, or elements build sequentially with transition effects. You can specify a different animation type for a slide:
+
+```markdown
+<!-- animation: zoom -->
+```
+
+#### **Visual Overflow Splitting (`overflow: split`)**
+
+By default, long lists or code blocks that exceed slide heights do not split. To automatically split overflowing slides into continuation slides (e.g. `Title (Cont.)`), enable the overflow engine:
+
+- **Globally**: Add `overflow: split` to your frontmatter.
+- **Slide-Specific**: Add `<!-- overflow: split -->` to enable it on a single slide, or `<!-- overflow: none -->` to disable it on a slide when globally active.
 
 #### **Background Images**
 
-Set a slide background image using:
+Set a background image using:
 
 ```markdown
 <!-- backgroundImage: url('https://example.com/slide-bg.jpg') -->
 ```
 
 - **Luminance Detection**: `mdslide` automatically analyzes the background image on load. If the image is dark, it inverts slide text to white; if light, it uses dark text with drop-shadows.
-- **Manual Override**: Append `dark` or `light` to the URL inside the comment to force text theme:
+- **Manual Override**: Force contrast themes by appending `dark` or `light` inside the comment:
   ```markdown
   <!-- backgroundImage: url('bg.jpg') dark -->
   ```
 
 #### **Presenter Speaker Notes**
 
-Add speaker notes that sync automatically to the Presenter View pop-up window:
+Add presenter notes that sync automatically to the Presenter View window:
 
 ```markdown
 <!-- notes -->
 
-This text will be hidden on the presentation view but visible to the speaker.
+This text will be hidden on the presentation view but visible to the speaker in the presenter view panel.
 
 <!-- /notes -->
 ```
 
-### 4. Two-Column Layouts (`::split::`)
+#### **Presentation Navigation & Controls**
 
-You can split any slide into two columns (text on left, content on right) manually by using the `::split::` separator:
+When presenting your compiled HTML slides in the browser, you can use the following keyboard shortcuts and interactive actions:
+
+| Key / Control                | Action         | Description                                                                            |
+| :--------------------------- | :------------- | :------------------------------------------------------------------------------------- |
+| `Space` or `→` (Right Arrow) | Next           | Advance to the next slide (or reveal the next bullet list item/element).               |
+| `←` (Left Arrow)             | Previous       | Return to the previous slide or sequential item.                                       |
+| `f` / `F`                    | Fullscreen     | Toggle fullscreen mode.                                                                |
+| `p` / `P`                    | Presenter View | Open a synced Presenter View window containing speaker notes and a presentation timer. |
+
+---
+
+## Advanced Layouts & Styling
+
+### Two-Column Split Layouts (`::split::`)
+
+To split content on a slide into two equal side-by-side columns:
 
 ```markdown
 # Product Features Comparison
 
-Left Column Header
+Left Column contents.
 
 - High scalability
 - Easy installation
-- Modular design
 
 ::split::
 
-Right Column Header
+Right Column contents.
 
 - 24/7 technical support
 - Extended warranty options
-- Comprehensive API docs
 ```
 
-- **Auto-Split**: If a slide contains exactly one image alongside text, `mdslide` automatically converts the layout into a split view, placing text on the left and the image on the right.
+- **Auto-Split Heuristic**: If a slide contains exactly one image alongside text, `mdslide` automatically converts the layout into a split view, placing text on the left and the image on the right.
+
+### Mathematical Equations, GFM & Mermaid Diagrams
+
+`mdslide` includes full support for GitHub Flavored Markdown (GFM), math formatting, and diagramming out of the box:
+
+- **Mathematical Equations (KaTeX)**:
+  - **Inline Math**: Wrap LaTeX formulas in single dollar signs `$`, e.g., `$E = mc^2$`.
+  - **Block Math**: Wrap formulas in double dollar signs `$$` for centered display math:
+    ```latex
+    $$
+    f(x) = \int_{-\infty}^{\infty} e^{-x^2} dx
+    $$
+    ```
+- **Mermaid Diagrams**:
+  - Render flowcharts, sequence diagrams, and class diagrams directly on slides using `mermaid` fenced code blocks:
+
+    ````markdown
+    ```mermaid
+    graph TD
+        A[Start] --> B(Process)
+        B --> C{Decision}
+        C -->|Yes| D[Success]
+        C -->|No| E[Fail]
+    ```
+    ````
+
+    ```
+
+    ```
+
+- **GitHub Flavored Markdown (GFM)**:
+  - **Tables**: Design aligned comparison and data tables.
+  - **Task Lists**: Create checkboxes with `- [ ]` and `- [x]`.
+  - **Strikethrough**: Cross out text using `~~strikethrough~~`.
+
+### Custom Typography, Colors & CSS Overrides
+
+Since `mdslide` compiles your presentation directly to a standard web page, you can fully customize the look and feel using standard CSS variables inside a `<style>` block directly in your markdown file.
+
+You can override the following configuration tokens inside a `:root` selector:
+
+| CSS Variable                | Category       | Description / Default Value                                                   |
+| :-------------------------- | :------------- | :---------------------------------------------------------------------------- |
+| `--slide-font`              | **Typography** | Main font family for headings, lists, paragraphs, and cards.                  |
+| `--slide-mono`              | **Typography** | Font family for inline code and code blocks.                                  |
+| `--title-size`              | **Typography** | Font size for slide titles (default: `3.6rem`).                               |
+| `--h2-size` / `--h3-size`   | **Typography** | Font sizes for content headings (default: `2.6rem` / `1.8rem`).               |
+| `--body-size` / `--li-size` | **Typography** | Font sizes for paragraph text and list items (default: `1.35rem` / `1.3rem`). |
+| `--code-size`               | **Typography** | Font size inside code blocks (default: `1.1rem`).                             |
+| `--slide-bg`                | **Colors**     | Slide background color.                                                       |
+| `--slide-surface`           | **Colors**     | Card/container background color (for quotes, columns).                        |
+| `--slide-text`              | **Colors**     | Main body and heading text color.                                             |
+| `--slide-muted`             | **Colors**     | Color for secondary metadata or muted text.                                   |
+| `--slide-accent`            | **Colors**     | Accent color used for bullet markers, links, highlights, and borders.         |
+| `--slide-border`            | **Colors**     | Color for dividing lines and card borders.                                    |
+| `--slide-radius`            | **Styling**    | Border-radius styling for cards, code blocks, and images (default: `6px`).    |
+
+#### **Example Styling Override**
+
+Here is an example showing how to load custom Google Fonts, apply theme color modifications, and change accent coloring:
+
+```html
+<style>
+  /* Import distinct display fonts: Creepster (spooky) and Press Start 2P (8-bit pixel) */
+  @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Press+Start+2P&display=swap');
+
+  :root {
+    /* Override default fonts */
+    --slide-font: 'Creepster', cursive;
+    --slide-mono: 'Press Start 2P', monospace;
+
+    /* Customize colors and styling */
+    --slide-accent: #ff007f; /* Bright neon pink */
+    --slide-text: #111111; /* Dark charcoal */
+    --slide-radius: 12px; /* Rounder borders */
+  }
+</style>
+```
+
+---
+
+## Configuration File (`mdslide.config.ts`)
+
+You can customize compilation defaults globally using a configuration file in your project folder.
+
+Create a `mdslide.config.ts` file:
+
+```typescript
+import { defineConfig } from '@mindfiredigital/mdslide-cli';
+
+export default defineConfig({
+  theme: 'gradient',
+  output: 'dist/presentation.html',
+  watch: {
+    port: 4200,
+    open: true,
+  },
+  pdf: {
+    printBackground: true,
+  },
+});
+```
+
+#### **Configuration Reference**
+
+The configuration object passed to `defineConfig` supports the following properties:
+
+| Property              | Type                        | Description                                                                                       |
+| :-------------------- | :-------------------------- | :------------------------------------------------------------------------------------------------ |
+| `theme`               | `string`                    | Default design theme for compilation (e.g. `'gradient'`, `'dark'`, `'notion'`).                   |
+| `output`              | `string`                    | Default output filename or relative path (e.g. `'dist/deck.html'`).                               |
+| `format`              | `'html' \| 'pdf' \| 'pptx'` | Default compilation export format.                                                                |
+| `watch.port`          | `number`                    | Port for the live watch server (default: `3500`).                                                 |
+| `watch.open`          | `boolean`                   | Automatically launch the web browser upon watch server startup (default: `true`).                 |
+| `pdf.chromePath`      | `string`                    | Custom binary file path to the local Chrome/Chromium installation (for headless browser exports). |
+| `pdf.printBackground` | `boolean`                   | Print CSS background colors/gradients during PDF export (default: `true`).                        |
 
 ---
 
 ## Contributing
 
-We welcome contributions from the community. Please follow our [Contributing Guidelines](CONTRIBUTING.md).
+If you are a developer looking to contribute to `mdslide`, please read our [Contributing Guide](CONTRIBUTING.md) to set up your local development environment and start building or testing.
+
+---
 
 ## License
 
