@@ -223,38 +223,31 @@ export function renderNotes(notes: string | undefined): string {
 }
 
 // Image helpers for split layout
-function findImageNode(nodes: SlideNode[]): SlideNode | null {
-  for (const node of nodes) {
-    if (node.type === 'image') return node;
-    if (node.children) {
-      const img = findImageNode(node.children);
-      if (img) return img;
+function extractImagesAndCleanTree(nodes: SlideNode[]): {
+  images: SlideNode[];
+  cleanNodes: SlideNode[];
+} {
+  const images: SlideNode[] = [];
+
+  function process(nodeList: SlideNode[]): SlideNode[] {
+    const cleaned: SlideNode[] = [];
+    for (const node of nodeList) {
+      if (node.type === 'image') {
+        images.push(node);
+      } else if (node.children) {
+        cleaned.push({
+          ...node,
+          children: process(node.children),
+        });
+      } else {
+        cleaned.push(node);
+      }
     }
+    return cleaned;
   }
-  return null;
-}
 
-function removeImageNode(nodes: SlideNode[]): SlideNode[] {
-  return nodes
-    .map((node) => {
-      if (node.type === 'image') return null;
-      if (node.children) return { ...node, children: removeImageNode(node.children) };
-      return node;
-    })
-    .filter((n): n is SlideNode => n !== null);
-}
-
-// Slide renderer
-
-// Count total images anywhere in a node tree
-function countImagesInTree(nodes: SlideNode[]): number {
-  let count = 0;
-  function walk(node: SlideNode) {
-    if (node.type === 'image') count++;
-    if (node.children) node.children.forEach(walk);
-  }
-  nodes.forEach(walk);
-  return count;
+  const cleanNodes = process(nodes);
+  return { images, cleanNodes };
 }
 
 export function renderSlide(slide: Slide): string {
@@ -278,14 +271,13 @@ export function renderSlide(slide: Slide): string {
         </div>`;
     } else {
       // Auto-split: only do text+image split when there is EXACTLY one image
-      const totalImages = countImagesInTree(slide.content);
-      if (totalImages === 1) {
-        const imageNode = findImageNode(slide.content);
-        const textNodes = removeImageNode(slide.content);
+      const { images, cleanNodes } = extractImagesAndCleanTree(slide.content);
+      if (images.length === 1) {
+        const imageNode = images[0]!;
         contentHtml = `
           <div class="splitLayout">
-            <div class="splitColumn textColumn">${textNodes.map((n) => nodeToHtml(n, slide.animation)).join('\n')}</div>
-            <div class="splitColumn imageColumn">${nodeToHtml(imageNode!, slide.animation)}</div>
+            <div class="splitColumn textColumn">${cleanNodes.map((n) => nodeToHtml(n, slide.animation)).join('\n')}</div>
+            <div class="splitColumn imageColumn">${nodeToHtml(imageNode, slide.animation)}</div>
           </div>`;
       } else {
         // 0 or 2+ images   render normally, let the list handler show images in a grid
