@@ -14,7 +14,7 @@ bun add @mindfiredigital/mdslide-parser
 
 ---
 
-## 🛠 Programmatic API Usage
+## Programmatic API Usage
 
 The default export function can be imported and called directly.
 
