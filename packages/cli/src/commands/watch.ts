@@ -39,16 +39,22 @@ export async function watchCommand(inputFile: string, opts: WatchOptions): Promi
   const log = new Logger(opts.logLevel ?? 'info');
   const absInput = path.resolve(inputFile);
 
-  if (!fs.existsSync(absInput)) {
-    log.error(new InputNotFoundError(absInput));
-    process.exit(1);
+  try {
+    await fs.promises.access(absInput);
+  } catch {
+    const err = new InputNotFoundError(absInput);
+    log.error(err);
+    throw err;
   }
 
   const preferredPort = opts.port ?? WATCH_CONFIG.PORT;
-  const port = await findPort(preferredPort).catch((err) => {
+  let port: number;
+  try {
+    port = await findPort(preferredPort);
+  } catch (err) {
     log.error(err);
-    process.exit(1);
-  });
+    throw err;
+  }
 
   let cachedHtml = '';
   const clients: http.ServerResponse[] = [];
@@ -63,7 +69,7 @@ export async function watchCommand(inputFile: string, opts: WatchOptions): Promi
   } catch (err) {
     spinner.fail(WATCH_MESSAGES.SPINNER_FAIL);
     log.error(err);
-    process.exit(1);
+    throw err;
   }
 
   const liveReloadHandler = (req: http.IncomingMessage, res: http.ServerResponse) => {
@@ -95,13 +101,21 @@ export async function watchCommand(inputFile: string, opts: WatchOptions): Promi
     liveReloadHandler
   );
 
-  server.listen(port, () => {
-    const url = `http://localhost:${port}`;
-    log.raw('');
-    log.raw(`  ${link(url)}`);
-    log.raw('');
-    log.step(WATCH_MESSAGES.WATCHING_FILE(path.relative(process.cwd(), absInput)));
-    log.raw('');
+  await new Promise<void>((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(port, '127.0.0.1', () => {
+      server.off('error', reject);
+      const url = `http://localhost:${port}`;
+      log.raw('');
+      log.raw(`  ${link(url)}`);
+      log.raw('');
+      log.step(WATCH_MESSAGES.WATCHING_FILE(path.relative(process.cwd(), absInput)));
+      log.raw('');
+      resolve();
+    });
+  }).catch((err) => {
+    log.error(err);
+    throw err;
   });
 
   onShutdown(() => {

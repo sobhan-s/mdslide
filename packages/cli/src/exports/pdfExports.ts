@@ -1,31 +1,33 @@
 import fs from 'fs';
 import path from 'path';
-import { spawn } from 'child_process';
-import { execFileSync } from 'child_process';
+import { spawn, execFile } from 'child_process';
+import { promisify } from 'util';
 import { PdfExportOptions } from '../types/index.js';
 import { PDF_CONFIG, PDF_MESSAGES } from '../constants/index.js';
 import { createStaticServer, getFreePort } from '../utils/index.js';
 
-export function findChromeBinary(): string | null {
+const execFilePromise = promisify(execFile);
+
+export async function findChromeBinary(): Promise<string | null> {
   for (const bin of PDF_CONFIG.CHROME_CANDIDATES) {
     try {
-      execFileSync(bin, ['--version'], { stdio: 'ignore' });
+      await execFilePromise(bin, ['--version']);
       return bin;
     } catch {}
   }
   return null;
 }
 
-export function exportToPdf(
+export async function exportToPdf(
   url: string,
   outputPath: string,
   opts: PdfExportOptions = {}
 ): Promise<void> {
   const timeoutMs = opts.timeoutMs ?? PDF_CONFIG.DEFAULT_TIMEOUT_MS;
-  const chromeBin = opts.chromePath ?? findChromeBinary();
+  const chromeBin = opts.chromePath ?? (await findChromeBinary());
 
   if (!chromeBin) {
-    return Promise.reject(new Error(PDF_MESSAGES.CHROME_NOT_FOUND));
+    throw new Error(PDF_MESSAGES.CHROME_NOT_FOUND);
   }
 
   const args = PDF_CONFIG.CHROME_ARGS(outputPath, url);
@@ -41,11 +43,17 @@ export function exportToPdf(
       reject(new Error(PDF_MESSAGES.TIMEOUT_ERROR(timeoutMs)));
     }, timeoutMs);
 
-    child.on('close', (code) => {
+    child.on('close', async (code) => {
       clearTimeout(timer);
 
       if (code === 0) {
-        if (!fs.existsSync(outputPath) || fs.statSync(outputPath).size === 0) {
+        try {
+          const stats = await fs.promises.stat(outputPath);
+          if (stats.size === 0) {
+            reject(new Error(PDF_MESSAGES.EMPTY_OUTPUT_ERROR(outputPath)));
+            return;
+          }
+        } catch {
           reject(new Error(PDF_MESSAGES.EMPTY_OUTPUT_ERROR(outputPath)));
           return;
         }

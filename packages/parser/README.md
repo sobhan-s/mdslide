@@ -35,10 +35,6 @@ If you don't need line/column coordinate numbers in your AST, you can strip them
   ```typescript
   const ast = parser(markdown, { clean: true });
   ```
-- **Method Chaining**:
-  ```typescript
-  const ast = parser(markdown).clean();
-  ```
 - **Namespace Helper**:
   ```typescript
   const ast = parser.clean(markdown);

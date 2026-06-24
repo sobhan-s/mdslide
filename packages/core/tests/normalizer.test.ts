@@ -69,6 +69,15 @@ describe('Normalize Layout', () => {
     ];
     const { backgroundImage: bg2 } = parseBackgroundImage(nodesWithUrlWrapper);
     expect(bg2).toBe('https://example.com/bg2.png');
+
+    const nodesWithUrlAndModifier: RootContent[] = [
+      {
+        type: 'html',
+        value: '<!-- background-image: url("https://example.com/bg3.png") light -->',
+      },
+    ];
+    const { backgroundImage: bg3 } = parseBackgroundImage(nodesWithUrlAndModifier);
+    expect(bg3).toBe('https://example.com/bg3.png light');
   });
 
   test('parseTitlePositioning extracts title alignment and vertical positioning comments', () => {

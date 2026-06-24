@@ -8,6 +8,8 @@ import { RELOAD_SCRIPT } from '../script/reloadScript.js';
 import { COMPILE_CONFIG, COMPILE_MESSAGES } from '../constants/index.js';
 import { compileToPdf } from '../exports/pdfExports.js';
 import { compileToScreenshotPptx, compileToEditablePptx } from '../exports/pptxExports.js';
+import type { Compiler as CompilerType, CompileResult } from '@mindfiredigital/mdslide-core';
+import type { Slide } from '@mindfiredigital/mdslide-shared';
 
 // format detection (pdf, pptx, html)
 function detectFormat(
@@ -33,25 +35,35 @@ export async function runCompile(
   opts: CompileOptions,
   log: Logger,
   options?: { injectReload?: boolean }
-): Promise<{ html: string; slideCount: number; warnings: string[]; slides: any[]; meta: any }> {
-  if (!fs.existsSync(inputFile)) throw new InputNotFoundError(inputFile);
+): Promise<{
+  html: string;
+  slideCount: number;
+  warnings: string[];
+  slides: Slide[];
+  meta: Record<string, unknown>;
+}> {
+  try {
+    await fs.promises.access(inputFile);
+  } catch {
+    throw new InputNotFoundError(inputFile);
+  }
 
-  let Compiler: any;
+  let compilerInstance: CompilerType;
   try {
     const core = await import('@mindfiredigital/mdslide-core');
-    Compiler = core.Compiler;
+    compilerInstance = new core.Compiler();
   } catch {
     throw new CompileError(COMPILE_MESSAGES.CORE_NOT_FOUND, {});
   }
 
-  const markdown = fs.readFileSync(inputFile, 'utf8');
-  let result: any;
+  const markdown = await fs.promises.readFile(inputFile, 'utf8');
+  let result: CompileResult;
 
   try {
-    const compiler = new Compiler();
-    result = compiler.compile(markdown, { theme: opts.theme });
-  } catch (err: any) {
-    throw new CompileError(err.message, { file: inputFile });
+    result = compilerInstance.compile(markdown, { theme: opts.theme });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new CompileError(message, { file: inputFile });
   }
 
   let html: string = result.html;
@@ -62,7 +74,7 @@ export async function runCompile(
   const slides = result.slides ?? [];
   const meta = result.meta ?? {};
   const slideCount = result.slides?.length ?? 0;
-  const warnings = result.warnings ?? [];
+  const warnings = (result as any).warnings ?? [];
 
   return { html, meta, slides, slideCount, warnings };
 }
@@ -82,7 +94,7 @@ export async function compileCommand(inputFile: string, opts: CompileOptions): P
   let html: string;
   let slideCount: number;
   let warnings: string[];
-  let deck: any;
+  let deck: { slides: Slide[]; meta: Record<string, unknown> };
 
   try {
     const compileResult = await runCompile(absInput, opts, log);
@@ -93,13 +105,13 @@ export async function compileCommand(inputFile: string, opts: CompileOptions): P
   } catch (err) {
     spinner.fail();
     log.error(err);
-    process.exit(1);
+    throw err;
   }
 
   try {
     if (format === 'html') {
-      fs.mkdirSync(path.dirname(absOutput), { recursive: true });
-      fs.writeFileSync(absOutput, html);
+      await fs.promises.mkdir(path.dirname(absOutput), { recursive: true });
+      await fs.promises.writeFile(absOutput, html);
     } else if (format === 'pdf') {
       spinner.update('Launching Chrome for PDF export...');
       await compileToPdf(html, absOutput, {
@@ -110,7 +122,7 @@ export async function compileCommand(inputFile: string, opts: CompileOptions): P
     } else if (format === 'pptx') {
       const pptxMode = opts.pptxMode ?? 'screenshot';
       spinner.update(`Building PPTX (${pptxMode} mode)...`);
-      fs.mkdirSync(path.dirname(absOutput), { recursive: true });
+      await fs.promises.mkdir(path.dirname(absOutput), { recursive: true });
       if (pptxMode === 'editable') {
         await compileToEditablePptx(deck, absOutput, {
           theme: opts.theme,
@@ -126,7 +138,7 @@ export async function compileCommand(inputFile: string, opts: CompileOptions): P
   } catch (err) {
     spinner.fail();
     log.error(err);
-    process.exit(1);
+    throw err;
   }
 
   spinner.succeed(

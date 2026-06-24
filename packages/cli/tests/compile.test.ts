@@ -32,7 +32,7 @@ vi.mock('@mindfiredigital/mdslide-core', async () => {
         throw new Error('mock core load error');
       }
       return actual.Compiler;
-    }
+    },
   };
 });
 
@@ -51,9 +51,11 @@ describe('CLI Compile Command', () => {
     }
     fs.writeFileSync(sampleMd, '# Title\nContent\n');
 
-    exitSpy = vi.spyOn(process, 'exit').mockImplementation((code?: string | number | null | undefined) => {
-      throw new Error(`process.exit called with code: ${code}`);
-    });
+    exitSpy = vi
+      .spyOn(process, 'exit')
+      .mockImplementation((code?: string | number | null | undefined) => {
+        throw new Error(`process.exit called with code: ${code}`);
+      });
     logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -86,7 +88,9 @@ describe('CLI Compile Command', () => {
   test('runCompile throws CompileError if core Compiler fails to import', async () => {
     mockCoreThrow = true;
     const log = new Logger('silent');
-    await expect(runCompile(sampleMd, {}, log)).rejects.toThrow('Cannot find @mindfiredigital/mdslide-core');
+    await expect(runCompile(sampleMd, {}, log)).rejects.toThrow(
+      'Cannot find @mindfiredigital/mdslide-core'
+    );
   });
 
   test('runCompile throws CompileError if compiler compile method throws', async () => {
@@ -189,7 +193,7 @@ describe('CLI Compile Command', () => {
     expect(open).toHaveBeenCalledWith(path.resolve(outputHtml));
   });
 
-  test('compileCommand exits 1 if an error is thrown in export phase', async () => {
+  test('compileCommand throws error if an error is thrown in export phase', async () => {
     const { compileToPdf } = await import('../src/exports/pdfExports.js');
     vi.mocked(compileToPdf).mockRejectedValueOnce(new Error('PDF export failed'));
 
@@ -199,6 +203,6 @@ describe('CLI Compile Command', () => {
         format: 'pdf',
         logLevel: 'silent',
       })
-    ).rejects.toThrow('process.exit called with code: 1');
+    ).rejects.toThrow('PDF export failed');
   });
 });

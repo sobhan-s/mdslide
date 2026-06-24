@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Logger } from '../logger/index.js';
-import { InputNotFoundError } from '../middleware/errors.js';
+import { InputNotFoundError, ValidationError } from '../middleware/errors.js';
 import type { ValidateOptions, ValidationIssue } from '../types/index.js';
 import {
   COLORS,
@@ -16,7 +16,7 @@ import { ICONS } from '../utils/index.js';
 import { parseFrontmatter } from '@mindfiredigital/mdslide-shared';
 
 // Rules for the validate slides
-function validateSlides(markdown: string, filePath?: string): ValidationIssue[] {
+async function validateSlides(markdown: string, filePath?: string): Promise<ValidationIssue[]> {
   const issues: ValidationIssue[] = [];
 
   // 1. Parse Frontmatter
@@ -237,7 +237,9 @@ function validateSlides(markdown: string, filePath?: string): ValidationIssue[] 
       if (!isExternal) {
         const baseDir = filePath ? path.dirname(path.resolve(filePath)) : process.cwd();
         const resolvedPath = path.resolve(baseDir, imgUrl);
-        if (!fs.existsSync(resolvedPath)) {
+        try {
+          await fs.promises.access(resolvedPath);
+        } catch {
           issues.push({
             type: 'warning',
             slide: slideNo,
@@ -256,13 +258,16 @@ export async function validateCommand(inputFile: string, opts: ValidateOptions):
   const log = new Logger(opts.logLevel ?? 'info');
   const absInput = path.resolve(inputFile);
 
-  if (!fs.existsSync(absInput)) {
-    log.error(new InputNotFoundError(absInput));
-    process.exit(1);
+  try {
+    await fs.promises.access(absInput);
+  } catch {
+    const err = new InputNotFoundError(absInput);
+    log.error(err);
+    throw err;
   }
 
-  const markdown = fs.readFileSync(absInput, 'utf8');
-  const issues = validateSlides(markdown, absInput);
+  const markdown = await fs.promises.readFile(absInput, 'utf8');
+  const issues = await validateSlides(markdown, absInput);
 
   const errors = issues.filter((i) => i.type === 'error');
   const warnings = issues.filter((i) => i.type === 'warning');
@@ -305,6 +310,6 @@ export async function validateCommand(inputFile: string, opts: ValidateOptions):
   log.raw('');
 
   if (errors.length > 0 || (opts.strict && warnings.length > 0)) {
-    process.exit(1);
+    throw new ValidationError();
   }
 }

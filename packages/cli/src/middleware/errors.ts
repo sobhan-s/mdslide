@@ -76,3 +76,14 @@ export class CompileError extends MdSlideError {
     this.name = 'CompileError';
   }
 }
+
+export class ValidationError extends MdSlideError {
+  constructor(message = 'Validation failed') {
+    super({
+      code: 'ERR_VALIDATION_FAILED',
+      message,
+      hint: 'Fix the validation errors/warnings.',
+    });
+    this.name = 'ValidationError';
+  }
+}

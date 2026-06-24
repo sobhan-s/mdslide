@@ -104,7 +104,7 @@ describe('CLI Validate Command', () => {
 
   test('fails validation and exits on syntax errors', async () => {
     await expect(validateCommand(invalidMd, { logLevel: 'silent' })).rejects.toThrow(
-      'process.exit called with code: 1'
+      'Validation failed'
     );
   });
 
@@ -114,20 +114,20 @@ describe('CLI Validate Command', () => {
 
   test('fails validation and exits on warnings when strict is true', async () => {
     await expect(validateCommand(warningMd, { strict: true, logLevel: 'silent' })).rejects.toThrow(
-      'process.exit called with code: 1'
+      'Validation failed'
     );
   });
 
   test('fails and exits if input file does not exist', async () => {
     await expect(validateCommand('nonexistent.md', { logLevel: 'silent' })).rejects.toThrow(
-      'process.exit called with code: 1'
+      'Input file not found'
     );
   });
 
   // New validation tests
   test('fails on invalid YAML frontmatter syntax', async () => {
     await expect(validateCommand(frontmatterErrorMd, { logLevel: 'silent' })).rejects.toThrow(
-      'process.exit called with code: 1'
+      'Validation failed'
     );
   });
 

@@ -39,12 +39,18 @@ export function parseBackgroundImage(nodes: RootContent[]): {
       const val = node.value.trim();
       const bgMatch = val.match(/^<!--\s*background-?image:\s*(.+?)\s*-->$/i);
       if (bgMatch) {
-        let bgUrl = bgMatch[1].trim();
-        const urlWrapMatch = bgUrl.match(/^url\((['"]?)(.+?)\1\)$/i);
+        const bgUrl = bgMatch[1].trim();
+
+        const modifierMatch = bgUrl.match(/\s+(dark|light)$/i);
+        const modifier = modifierMatch ? modifierMatch[0] : '';
+        let urlPart = modifierMatch ? bgUrl.slice(0, bgUrl.length - modifier.length).trim() : bgUrl;
+
+        const urlWrapMatch = urlPart.match(/^url\((['"]?)(.+?)\1\)$/i);
         if (urlWrapMatch) {
-          bgUrl = urlWrapMatch[2];
+          urlPart = urlWrapMatch[2];
         }
-        backgroundImage = bgUrl;
+
+        backgroundImage = modifier ? `${urlPart}${modifier}` : urlPart;
         continue;
       }
     }
