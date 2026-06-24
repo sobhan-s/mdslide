@@ -66,8 +66,13 @@ describe('CLI Watch Command', () => {
   let mockNetPortInUse = false;
 
   const mockServer = {
-    listen: vi.fn((port, cb) => cb?.()),
+    listen: vi.fn((port, hostOrCallback, cb) => {
+      const callback = typeof hostOrCallback === 'function' ? hostOrCallback : cb;
+      callback?.();
+    }),
     close: vi.fn(),
+    once: vi.fn().mockReturnThis(),
+    off: vi.fn().mockReturnThis(),
   };
 
   beforeEach(() => {
@@ -131,7 +136,7 @@ describe('CLI Watch Command', () => {
     await watchCommand(sampleMd, { logLevel: 'silent', port: 3500 });
 
     expect(serverSpy).toHaveBeenCalled();
-    expect(mockServer.listen).toHaveBeenCalledWith(3500, expect.any(Function));
+    expect(mockServer.listen).toHaveBeenCalledWith(3500, '127.0.0.1', expect.any(Function));
     expect(mockWatchSpy).toHaveBeenCalledWith(path.resolve(sampleMd), { ignoreInitial: true });
     expect(mockWatcher.on).toHaveBeenCalledWith('change', expect.any(Function));
   });

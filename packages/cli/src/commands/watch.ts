@@ -101,13 +101,21 @@ export async function watchCommand(inputFile: string, opts: WatchOptions): Promi
     liveReloadHandler
   );
 
-  server.listen(port, () => {
-    const url = `http://localhost:${port}`;
-    log.raw('');
-    log.raw(`  ${link(url)}`);
-    log.raw('');
-    log.step(WATCH_MESSAGES.WATCHING_FILE(path.relative(process.cwd(), absInput)));
-    log.raw('');
+  await new Promise<void>((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(port, '127.0.0.1', () => {
+      server.off('error', reject);
+      const url = `http://localhost:${port}`;
+      log.raw('');
+      log.raw(`  ${link(url)}`);
+      log.raw('');
+      log.step(WATCH_MESSAGES.WATCHING_FILE(path.relative(process.cwd(), absInput)));
+      log.raw('');
+      resolve();
+    });
+  }).catch((err) => {
+    log.error(err);
+    throw err;
   });
 
   onShutdown(() => {
