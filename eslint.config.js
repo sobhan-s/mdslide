@@ -15,6 +15,7 @@ export default defineConfig([
       'temp/**',
       'apps/playground/**',
       '**/*.cjs',
+      'scripts/**',
     ],
   },
   {
