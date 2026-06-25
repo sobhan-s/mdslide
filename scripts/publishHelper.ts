@@ -1,9 +1,13 @@
-import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, unlinkSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const PACKAGES_DIR = join(import.meta.dirname, '..', 'packages');
-const PACKAGE_NAMES = ['cli', 'core', 'parser', 'shared'];
+const PACKAGE_NAMES = readdirSync(PACKAGES_DIR, { withFileTypes: true })
+  .filter(
+    (entry) => entry.isDirectory() && existsSync(join(PACKAGES_DIR, entry.name, 'package.json'))
+  )
+  .map((entry) => entry.name);
 
 // Helper to resolve package info
 function getPackagesInfo() {
@@ -76,20 +80,19 @@ if (command === '--prepare') {
 } else if (command === '--publish') {
   console.log('Publishing packages to npm...');
   try {
-    //  Run prepare
     const prepResult = spawnSync('bun', ['run', 'scripts/publishHelper.ts', '--prepare'], {
       stdio: 'inherit',
     });
     if (prepResult.status !== 0) {
       console.error('Preparation failed.');
-      process.exit(prepResult.status ?? 1);
-    }
-
-    // Publish using changeset publish
-    const pubResult = spawnSync('bun', ['x', 'changeset', 'publish'], { stdio: 'inherit' });
-    if (pubResult.status !== 0) {
-      console.error('Changeset publish failed.');
-      process.exitCode = pubResult.status ?? 1;
+      process.exitCode = prepResult.status ?? 1;
+    } else {
+      // Publish using changeset publish
+      const pubResult = spawnSync('bun', ['x', 'changeset', 'publish'], { stdio: 'inherit' });
+      if (pubResult.status !== 0) {
+        console.error('Changeset publish failed.');
+        process.exitCode = pubResult.status ?? 1;
+      }
     }
   } catch (err) {
     console.error('Error during publish:', err);
@@ -100,5 +103,5 @@ if (command === '--prepare') {
   }
 } else {
   console.error('Invalid command. Use --prepare, --restore, or --publish');
-  process.exit(1);
+  process.exitCode = 1;
 }
