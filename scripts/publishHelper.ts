@@ -14,7 +14,8 @@ function getPackagesInfo() {
   return PACKAGE_NAMES.map((dirName) => {
     const pkgPath = join(PACKAGES_DIR, dirName, 'package.json');
     const backupPath = join(PACKAGES_DIR, dirName, 'package.json.bak');
-    const content = JSON.parse(readFileSync(pkgPath, 'utf8'));
+    const rawContent = readFileSync(pkgPath, 'utf8');
+    const content = JSON.parse(rawContent);
     return {
       dirName,
       pkgPath,
@@ -22,6 +23,7 @@ function getPackagesInfo() {
       name: content.name,
       version: content.version,
       content,
+      rawContent,
     };
   });
 }
@@ -38,7 +40,7 @@ if (command === '--prepare') {
   }
 
   for (const pkg of packagesInfo) {
-    writeFileSync(pkg.backupPath, JSON.stringify(pkg.content, null, 2), 'utf8');
+    writeFileSync(pkg.backupPath, pkg.rawContent, 'utf8');
 
     const updatedContent = JSON.parse(JSON.stringify(pkg.content));
 
