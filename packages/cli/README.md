@@ -4,18 +4,18 @@
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
-- ⚡ **Auto-live preview / hot-reload server**: Automatically compiles and updates your browser presentation as you edit your markdown.
-- 🎨 **Gorgeous Built-in Themes**: Clean, modern aesthetics out-of-the-box (`light`, `dark`, `notion`, `terminal`, `gradient`, `corporate`, `solarized`).
-- 📦 **Multi-format Exports**: Generate presentation-ready standalone HTML, printable PDF, or PowerPoint (PPTX) files (supports both screenshot and editable text layouts).
-- 📏 **Smart Layout Engine**: Detects your content structure to apply the best matching layout (e.g. `bullets`, `code`, `visual`, `table`, `quote`, `statement`).
-- 🧩 **List & Code Overflow Splitting**: Automatically flows long code blocks and lists across multiple slides to prevent layout overflow.
-- 💬 **Speaker Notes Panel**: Native presenter view support for your presentation delivery.
+- **Auto-live preview / hot-reload server**: Automatically compiles and updates your browser presentation as you edit your markdown.
+- **Gorgeous Built-in Themes**: Clean, modern aesthetics out-of-the-box (`light`, `dark`, `notion`, `terminal`, `gradient`, `corporate`, `solarized`).
+- **Multi-format Exports**: Generate presentation-ready standalone HTML, printable PDF, or PowerPoint (PPTX) files (supports both screenshot and editable text layouts).
+- **Smart Layout Engine**: Detects your content structure to apply the best matching layout (e.g. `bullets`, `code`, `visual`, `table`, `quote`, `statement`).
+- **List & Code Overflow Splitting**: Automatically flows long code blocks and lists across multiple slides to prevent layout overflow.
+- **Speaker Notes Panel**: Native presenter view support for your presentation delivery.
 
 ---
 
-## 📦 Installation
+## Installation
 
 Install the CLI globally using your preferred package manager:
 
@@ -27,154 +27,7 @@ bun add -g @mindfiredigital/mdslide-cli
 
 ---
 
-## 📖 Writing Your Presentation
-
-Creating slides in `mdslide` is simple. Slides are separated by thematic breaks (`---`), and your slide settings are configured at the top using frontmatter.
-
-### Sample Slide Deck (`slides.md`)
-
-````markdown
----
-title: Building with mdslide
-theme: gradient
----
-
-# Introduction to mdslide
-
-### High-Performance Markdown Presentations
-
-<!-- notes -->
-
-Welcome everyone! Introduce myself and set the stage for how mdslide simplifies presentation authoring.
-
-<!-- /notes -->
-
----
-
-<!-- layout: bullets -->
-
-## Core Advantages
-
-- **Write in Markdown**: Focus entirely on your content.
-- **Smart Formatting**: Zero manual alignments or coordinate styling.
-- **Presenter Mode**: Built-in dual-screen window speaker notes.
-
----
-
-<!-- layout: code -->
-
-## Zero Configuration Code Slides
-
-```typescript
-import { defineConfig } from '@mindfiredigital/mdslide-cli';
-
-export default defineConfig({
-  theme: 'dark',
-  watch: { open: true },
-});
-```
-````
-
----
-
-<!-- layout: quote -->
-
-> "Simplicity is the ultimate sophistication."
-> — Leonardo da Vinci
-
----
-
-<!-- layout: table -->
-
-## Formats Comparison
-
-| Feature                 |  HTML  |  PDF   |    PPTX    |
-| :---------------------- | :----: | :----: | :--------: |
-| Interactive Transitions | ✅ Yes | ❌ No  |   ✅ Yes   |
-| Standalone File         | ✅ Yes | ✅ Yes |   ✅ Yes   |
-| Vector Graphics         | ✅ Yes | ✅ Yes | ⚠️ Partial |
-
----
-
-<!-- layout: statement -->
-
-# Thank You!
-
-### Let's start compiling.
-
-````
-
----
-
-## 🛠 Slide Controls & Layout Comments
-
-### 1. Slide Separation
-* **Manual Separation**: Use `---` on a blank line.
-* **Auto-Separation**: Level-2 headings (`##`) automatically start a new slide (unless overridden).
-
-### 2. Layout Overrides
-You can manually force a layout on any slide using an HTML comment:
-* `<!-- layout: title -->` (Main title layout)
-* `<!-- layout: bullets -->` (Bumps font size and styles lists nicely)
-* `<!-- layout: code -->` (Full-width preformatted syntax highlighted code block)
-* `<!-- layout: visual -->` (Displays images prominently)
-* `<!-- layout: quote -->` (Stylized blockquote focus)
-* `<!-- layout: table -->` (Formats tables centrally)
-* `<!-- layout: statement -->` (Giant centered message layout)
-* `<!-- layout: split -->` (Multi-column content structure layout)
-
-### 3. Multi-Column Split (`::split::`)
-To split content on a slide into two equal side-by-side columns:
-```markdown
-# Columns Layout
-
-Left Column contents.
-- Item A
-- Item B
-
-::split::
-
-Right Column contents.
-- Item C
-- Item D
-````
-
-### 4. Slide Title Alignments & Positions
-
-Override defaults for a slide's title block:
-
-- `<!-- titleAlign: center -->` — Horizontal alignment: `left` | `center` | `right`
-- `<!-- titlePosition: bottom -->` — Vertical position: `top` | `center` | `bottom`
-
-### 5. Slide Background Images
-
-Set a background image using:
-
-```markdown
-<!-- backgroundImage: url('https://example.com/image.jpg') -->
-```
-
-- **Smart Contrast**: `mdslide` automatically reads the image on load. If it's a dark background image, slide text automatically flips to white; if it's light, text shifts to dark gray with subtle shadows.
-- **Manual Style Override**: Force contrast themes by appending `dark` or `light` inside the comment:
-  ```markdown
-  <!-- backgroundImage: url('image.jpg') dark -->
-  ```
-
-### 6. Speaker Notes
-
-Wrap notes inside comment blocks anywhere on a slide. These will be visible in the presenter console window during presentation:
-
-```markdown
-<!-- notes -->
-
-Your presenter notes go here.
-
-<!-- /notes -->
-```
-
----
-
-## 💻 CLI Commands & Usage
+## CLI Commands & Usage
 
 `mdslide` offers several commands to manage, compile, preview, and validate your markdown slides.
 
@@ -308,7 +161,7 @@ mdslide interactive <input> [options]
 
 ---
 
-## ⚙️ Configuration File (`mdslide.config.ts`)
+## Configuration File (`mdslide.config.ts`)
 
 You can customize compilation defaults using a configuration file in your root folder.
 
@@ -329,3 +182,17 @@ export default defineConfig({
   },
 });
 ```
+
+#### **Configuration Reference**
+
+The configuration object passed to `defineConfig` supports the following properties:
+
+| Property              | Type                        | Description                                                                                       |
+| :-------------------- | :-------------------------- | :------------------------------------------------------------------------------------------------ |
+| `theme`               | `string`                    | Default design theme for compilation (e.g. `'gradient'`, `'dark'`, `'notion'`).                   |
+| `output`              | `string`                    | Default output filename or relative path (e.g. `'dist/deck.html'`).                               |
+| `format`              | `'html' \| 'pdf' \| 'pptx'` | Default compilation export format.                                                                |
+| `watch.port`          | `number`                    | Port for the live watch server (default: `3500`).                                                 |
+| `watch.open`          | `boolean`                   | Automatically launch the web browser upon watch server startup (default: `true`).                 |
+| `pdf.chromePath`      | `string`                    | Custom binary file path to the local Chrome/Chromium installation (for headless browser exports). |
+| `pdf.printBackground` | `boolean`                   | Print CSS background colors/gradients during PDF export (default: `true`).                        |

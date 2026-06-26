@@ -34,7 +34,7 @@ describe('CLI Init Command', () => {
     expect(fs.existsSync('mdslide.config.ts')).toBe(true);
 
     const slidesContent = fs.readFileSync('slides.md', 'utf8');
-    expect(slidesContent).toContain('My Presentation');
+    expect(slidesContent).toContain('Welcome to MdSlide!');
   });
 
   test('injects dev and build scripts into existing package.json', async () => {
@@ -71,7 +71,7 @@ describe('CLI Init Command', () => {
 
     const slidesContent = fs.readFileSync('slides.md', 'utf8');
     expect(slidesContent).not.toBe('existing custom slides');
-    expect(slidesContent).toContain('My Presentation');
+    expect(slidesContent).toContain('MdSlide Feature Showcase');
   });
 
   test('does not overwrite existing config without force option', async () => {

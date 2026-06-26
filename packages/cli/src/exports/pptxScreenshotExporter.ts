@@ -7,6 +7,15 @@ import { findChromeBinary } from './pdfExports.js';
 import { ScreenshotPptxOptions } from '../types/index.js';
 import { createStaticServer, getFreePort } from '../utils/index.js';
 
+async function fileExists(p: string): Promise<boolean> {
+  try {
+    await fs.promises.access(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function screenshotSlide(
   chromeBin: string,
   url: string,
@@ -40,9 +49,10 @@ function screenshotSlide(
       reject(new Error(`Screenshot timed out for: ${url}`));
     }, timeoutMs);
 
-    child.on('close', (code) => {
+    child.on('close', async (code) => {
       clearTimeout(timer);
-      if (code === 0 && fs.existsSync(outputPng)) {
+      const exists = code === 0 && (await fileExists(outputPng));
+      if (exists) {
         resolve();
       } else {
         reject(
@@ -130,7 +140,7 @@ export async function compileToScreenshotPptx(
   outputPath: string,
   opts: ScreenshotPptxOptions = {}
 ): Promise<void> {
-  const chromeBin = opts.chromePath ?? findChromeBinary();
+  const chromeBin = opts.chromePath ?? (await findChromeBinary());
   if (!chromeBin) {
     throw new Error(
       'Screenshot PPTX export requires Google Chrome or Chromium.\n' +
@@ -141,10 +151,10 @@ export async function compileToScreenshotPptx(
   const width = opts.width ?? 1920;
   const height = opts.height ?? 1080;
 
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mdslide-pptx-'));
-  const cleanup = () => {
+  const tmpDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'mdslide-pptx-'));
+  const cleanup = async () => {
     try {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
+      await fs.promises.rm(tmpDir, { recursive: true, force: true });
     } catch {}
   };
 
@@ -182,7 +192,7 @@ export async function compileToScreenshotPptx(
 
     for (let i = 0; i < pngPaths.length; i++) {
       const pngPath = pngPaths[i]!;
-      if (!fs.existsSync(pngPath)) continue;
+      if (!(await fileExists(pngPath))) continue;
 
       const slide = pptx.addSlide();
       slide.addImage({
@@ -194,9 +204,9 @@ export async function compileToScreenshotPptx(
       });
     }
 
-    fs.mkdirSync(path.dirname(path.resolve(outputPath)), { recursive: true });
+    await fs.promises.mkdir(path.dirname(path.resolve(outputPath)), { recursive: true });
     await pptx.writeFile({ fileName: path.resolve(outputPath) });
   } finally {
-    cleanup();
+    await cleanup();
   }
 }

@@ -66,7 +66,7 @@ cli
           theme: answers.theme,
           open: answers.open,
           logLevel,
-        });
+        }).catch(() => process.exit(1));
       } else {
         await compileCommand(input, {
           theme: answers.theme,
@@ -75,7 +75,7 @@ cli
           open: answers.open,
           pptxMode: answers.pptxMode,
           logLevel,
-        });
+        }).catch(() => process.exit(1));
       }
       return;
     }
@@ -88,7 +88,7 @@ cli
       strict: opts.strict ?? false,
       pptxMode: opts.pptxMode,
       logLevel,
-    });
+    }).catch(() => process.exit(1));
   });
 
 // watch
@@ -107,7 +107,7 @@ cli
       port: Number(opts.port) || 3500,
       open: opts.open ?? false,
       logLevel: opts.verbose ? 'verbose' : opts.silent ? 'silent' : 'info',
-    });
+    }).catch(() => process.exit(1));
   });
 
 // init
@@ -136,7 +136,7 @@ cli
     await validateCommand(input, {
       strict: opts.strict ?? false,
       logLevel: opts.verbose ? 'verbose' : opts.silent ? 'silent' : 'info',
-    });
+    }).catch(() => process.exit(1));
   });
 
 // interactive
@@ -154,7 +154,7 @@ cli
         theme: answers.theme,
         open: answers.open,
         logLevel,
-      });
+      }).catch(() => process.exit(1));
     } else {
       await compileCommand(input, {
         theme: answers.theme,
@@ -162,7 +162,7 @@ cli
         format: answers.format as any,
         open: answers.open,
         logLevel,
-      });
+      }).catch(() => process.exit(1));
     }
   });
 
@@ -195,7 +195,7 @@ cli
           theme: answers.theme,
           open: answers.open,
           logLevel,
-        });
+        }).catch(() => process.exit(1));
       } else {
         await compileCommand(input, {
           theme: answers.theme,
@@ -204,7 +204,7 @@ cli
           open: answers.open,
           pptxMode: answers.pptxMode,
           logLevel,
-        });
+        }).catch(() => process.exit(1));
       }
       return;
     }
@@ -216,7 +216,7 @@ cli
         port: Number(opts.port) || 3500,
         open: opts.open ?? false,
         logLevel,
-      });
+      }).catch(() => process.exit(1));
     } else {
       await compileCommand(input, {
         theme: opts.theme,
@@ -225,7 +225,7 @@ cli
         open: opts.open ?? false,
         pptxMode: opts.pptxMode,
         logLevel,
-      });
+      }).catch(() => process.exit(1));
     }
   });
 

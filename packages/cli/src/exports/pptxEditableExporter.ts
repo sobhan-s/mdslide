@@ -360,6 +360,6 @@ export async function compileToEditablePptx(
   }
 
   // Write output file, creating any missing parent directories first
-  fs.mkdirSync(path.dirname(path.resolve(outputPath)), { recursive: true });
+  await fs.promises.mkdir(path.dirname(path.resolve(outputPath)), { recursive: true });
   await pptx.writeFile({ fileName: path.resolve(outputPath) });
 }

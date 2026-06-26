@@ -6,6 +6,15 @@ import { SAMPLE_SLIDES } from '../constants/sampleSlide.js';
 import { SAMPLE_CONFIG } from '../constants/sampleConfig.js';
 import { DEV_COMMANDS, FILE_NAME, INIT_MESSAGES } from '../constants/logs/initCommandLogs.js';
 
+async function fileExists(p: string): Promise<boolean> {
+  try {
+    await fs.promises.access(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function initCommand(opts: InitOptions): Promise<void> {
   const log = new Logger(opts.logLevel ?? 'info');
   const cwd = process.cwd();
@@ -14,16 +23,16 @@ export async function initCommand(opts: InitOptions): Promise<void> {
 
   let created = 0;
 
-  if (!fs.existsSync(slidesPath) || opts.force) {
-    fs.writeFileSync(slidesPath, SAMPLE_SLIDES);
+  if (!(await fileExists(slidesPath)) || opts.force) {
+    await fs.promises.writeFile(slidesPath, SAMPLE_SLIDES);
     log.success(`${INIT_MESSAGES.SLIDES_CREATED}`);
     created++;
   } else {
     log.warn(`${INIT_MESSAGES.SLIDES_EXISTS}`);
   }
 
-  if (!fs.existsSync(configPath) || opts.force) {
-    fs.writeFileSync(configPath, SAMPLE_CONFIG);
+  if (!(await fileExists(configPath)) || opts.force) {
+    await fs.promises.writeFile(configPath, SAMPLE_CONFIG);
     log.success(`${INIT_MESSAGES.CONFIG_CREATED}`);
     created++;
   } else {
@@ -31,16 +40,16 @@ export async function initCommand(opts: InitOptions): Promise<void> {
   }
 
   const pkgPath = path.join(cwd, FILE_NAME.PACKAGE_NAME);
-  if (fs.existsSync(pkgPath)) {
+  if (await fileExists(pkgPath)) {
     try {
-      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+      const pkg = JSON.parse(await fs.promises.readFile(pkgPath, 'utf8'));
       if (!pkg.scripts?.dev) {
         pkg.scripts = {
           ...pkg.scripts,
           dev: DEV_COMMANDS.DEV,
           build: DEV_COMMANDS.BUILD,
         };
-        fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
+        await fs.promises.writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
         log.success(`${INIT_MESSAGES.SCRIPTS_ADDED}`);
       }
     } catch {}

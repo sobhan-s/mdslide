@@ -4,18 +4,18 @@
 
 ---
 
-## 📦 Project Structure
+## Project Structure
 
 The project is structured as a monorepo containing the following workspaces under the `packages/` directory:
 
-- **[`@mindfiredigital/mdslide-cli` (packages/cli)](/mdslide/packages/cli)**: Command line interface for compiling, watching, linting, and interactive wizard generation.
-- **[`@mindfiredigital/mdslide-core` (packages/core)](/mdslide/packages/core)**: The core compilation engine, slide normalizer, overflow splitted parser, and HTML/PDF/PPTX output renderers.
-- **[`@mindfiredigital/mdslide-parser` (packages/parser)](/mdslide/packages/parser)**: Standalone markdown parser producing MDAST JSON format, exposing programmatic defaults (with position coordinates cleaning option) and a standalone CLI.
-- **[`@mindfiredigital/mdslide-shared` (packages/shared)](/mdslide/packages/shared)**: Shared common utility functions, helpers, and TypeScript types.
+- **[`@mindfiredigital/mdslide-cli` (packages/cli)](packages/cli/README.md)**: Command line interface for compiling, watching, linting, and interactive wizard generation.
+- **[`@mindfiredigital/mdslide-core` (packages/core)](packages/core/README.md)**: The core compilation engine, slide normalizer, overflow splitted parser, and HTML/PDF/PPTX output renderers.
+- **[`@mindfiredigital/mdslide-parser` (packages/parser)](packages/parser/README.md)**: Standalone markdown parser producing MDAST JSON format, exposing programmatic defaults (with position coordinates cleaning option) and a standalone CLI.
+- **[`@mindfiredigital/mdslide-shared` (packages/shared)](packages/shared/README.md)**: Shared common utility functions, helpers, and TypeScript types.
 
 ---
 
-## 🛠 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -60,7 +60,7 @@ Run the following scripts from the root directory:
 
 ---
 
-## 👩‍💻 Developer Guide
+## Developer Guide
 
 We welcome contributions! Please follow this developer guide to ensure smooth collaboration.
 

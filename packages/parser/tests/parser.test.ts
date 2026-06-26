@@ -91,12 +91,6 @@ $$
       expect(ast.children[0].position).toBeUndefined();
     });
 
-    test('supports clean option via chaining: parser(md).clean()', () => {
-      const ast = parser(md).clean();
-      expect(ast.position).toBeUndefined();
-      expect(ast.children[0].position).toBeUndefined();
-    });
-
     test('supports namespace helper: parser.clean(md)', () => {
       const ast = parser.clean(md);
       expect(ast.position).toBeUndefined();

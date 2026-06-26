@@ -107,6 +107,14 @@ describe('Node and Children Renderer', () => {
     expect(olAnimHtml).toContain('">item</li>');
   });
 
+  test('nodeToHtml renders raw HTML but filters comments', () => {
+    const comment = createSlideNode({ type: 'html', value: '<!-- comment -->' });
+    expect(nodeToHtml(comment)).toBe('');
+
+    const style = createSlideNode({ type: 'html', value: '<style>body { color: red; }</style>' });
+    expect(nodeToHtml(style)).toBe('<style>body { color: red; }</style>');
+  });
+
   test('renderCodeBlock generates styled blocks', () => {
     const tsNode = createSlideNode({ type: 'code', lang: 'typescript', value: 'const a = 1;' });
     expect(renderCodeBlock(tsNode)).toBe(

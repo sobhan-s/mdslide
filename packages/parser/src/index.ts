@@ -4,9 +4,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import type { Root } from 'mdast';
 
-export type ParsedAST = Root & {
-  clean(): ParsedAST;
-};
+export type ParsedAST = Root;
 
 export function stripPositions(node: any): any {
   if (!node || typeof node !== 'object') {
@@ -25,40 +23,21 @@ export function stripPositions(node: any): any {
     }
   }
 
-  if (node.type === 'root') {
-    Object.defineProperty(cleaned, 'clean', {
-      value: function () {
-        return this;
-      },
-      enumerable: false,
-      writable: true,
-      configurable: true,
-    });
-  }
-
   return cleaned;
 }
 
 export function parseMarkdownToAST(markdown: string, options?: { clean?: boolean }): ParsedAST {
   const root = unified().use(remarkParse).use(remarkGfm).use(remarkMath).parse(markdown) as Root;
 
-  // Define clean method on standard Root
-  Object.defineProperty(root, 'clean', {
-    value: function () {
-      return stripPositions(this);
-    },
-    enumerable: false,
-    writable: true,
-    configurable: true,
-  });
-
-  const parsed = root as ParsedAST;
-
   if (options?.clean) {
-    return stripPositions(parsed) as ParsedAST;
+    return stripPositions(root);
   }
 
-  return parsed;
+  return root;
+}
+
+export function cleanAST(ast: Root): Root {
+  return stripPositions(ast);
 }
 
 export interface ParserInterface {

@@ -14,7 +14,7 @@ bun add @mindfiredigital/mdslide-parser
 
 ---
 
-## 🛠 Programmatic API Usage
+## Programmatic API Usage
 
 The default export function can be imported and called directly.
 
@@ -34,10 +34,6 @@ If you don't need line/column coordinate numbers in your AST, you can strip them
 - **Options parameter**:
   ```typescript
   const ast = parser(markdown, { clean: true });
-  ```
-- **Method Chaining**:
-  ```typescript
-  const ast = parser(markdown).clean();
   ```
 - **Namespace Helper**:
   ```typescript
