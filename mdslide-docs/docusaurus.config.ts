@@ -1,6 +1,8 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import tailwindcss from '@tailwindcss/postcss';
+import autoprefixer from 'autoprefixer';
 
 const config: Config = {
   title: 'mdslide',
@@ -123,6 +125,18 @@ const config: Config = {
       darkTheme: prismThemes.dracula,
     },
   } satisfies Preset.ThemeConfig,
+  plugins: [
+    async function tailwindPlugin() {
+      return {
+        name: 'tailwind-plugin',
+        configurePostCss(postcssOptions) {
+          postcssOptions.plugins.push(tailwindcss);
+          postcssOptions.plugins.push(autoprefixer);
+          return postcssOptions;
+        },
+      };
+    },
+  ],
 };
 
 export default config;

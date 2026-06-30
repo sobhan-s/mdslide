@@ -28,7 +28,11 @@
     "@docusaurus/module-type-aliases": "3.10.1",
     "@docusaurus/tsconfig": "3.10.1",
     "@docusaurus/types": "3.10.1",
+    "@tailwindcss/postcss": "^4.3.2",
     "@types/react": "^19.0.0",
+    "autoprefixer": "^10.5.2",
+    "postcss": "^8.5.16",
+    "tailwindcss": "^4.3.2",
     "typescript": "~6.0.2"
   },
   "browserslist": {
