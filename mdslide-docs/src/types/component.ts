@@ -7,3 +7,8 @@ export interface NavbarProps {
   setNavbarCopied: (val: boolean) => void;
   onToggleTheme: () => void;
 }
+
+export interface CommandSeq {
+  input: string;
+  output: string;
+}
